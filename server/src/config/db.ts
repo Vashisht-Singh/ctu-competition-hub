@@ -5,6 +5,10 @@ let mongodInstance: any = null;
 
 export const connectDB = async (): Promise<void> => {
   try {
+    if (mongoose.connection.readyState >= 1) {
+      return;
+    }
+
     if (ENV.USE_IN_MEMORY_DB) {
       console.log('⚡ Initializing in-memory MongoDB server as requested...');
       const { MongoMemoryServer } = await import('mongodb-memory-server');
@@ -19,9 +23,9 @@ export const connectDB = async (): Promise<void> => {
     // Try connecting to configured MongoDB
     try {
       await mongoose.connect(ENV.MONGODB_URI, {
-        serverSelectionTimeoutMS: 3500,
+        serverSelectionTimeoutMS: 10000,
       });
-      console.log(`✅ Connected to MongoDB at: ${ENV.MONGODB_URI}`);
+      console.log(`✅ Connected to MongoDB at: ${ENV.MONGODB_URI.replace(/:([^@]+)@/, ':****@')}`);
       return;
     } catch (primaryErr: any) {
       console.warn(`⚠️ Could not connect to primary MongoDB (${primaryErr.message}).`);
