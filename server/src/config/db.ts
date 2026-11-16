@@ -19,16 +19,22 @@ export const connectDB = async (): Promise<void> => {
       return;
     }
 
-    console.log(`⏳ Attempting connection to MongoDB at: ${ENV.MONGODB_URI}`);
+    console.log(`⏳ Attempting connection to MongoDB at: ${ENV.MONGODB_URI.replace(/:([^@]+)@/, ':****@')}`);
     // Try connecting to configured MongoDB
     try {
       await mongoose.connect(ENV.MONGODB_URI, {
-        serverSelectionTimeoutMS: 10000,
+        serverSelectionTimeoutMS: 8000,
       });
       console.log(`✅ Connected to MongoDB at: ${ENV.MONGODB_URI.replace(/:([^@]+)@/, ':****@')}`);
       return;
     } catch (primaryErr: any) {
       console.warn(`⚠️ Could not connect to primary MongoDB (${primaryErr.message}).`);
+      
+      // On Vercel, do not attempt embedded memory server (fails in serverless)
+      if (process.env.VERCEL) {
+        throw new Error(`MongoDB connection error: ${primaryErr.message}. Verify MONGODB_URI and Atlas Network Access (0.0.0.0/0).`);
+      }
+
       console.log('⚡ Falling back to embedded MongoMemoryServer for standalone zero-config runtime...');
       
       const { MongoMemoryServer } = await import('mongodb-memory-server');
@@ -39,7 +45,10 @@ export const connectDB = async (): Promise<void> => {
     }
   } catch (error: any) {
     console.error('❌ MongoDB connection error:', error.message);
-    process.exit(1);
+    if (!process.env.VERCEL) {
+      process.exit(1);
+    }
+    throw error;
   }
 };
 

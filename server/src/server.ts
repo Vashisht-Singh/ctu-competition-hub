@@ -21,6 +21,9 @@ export const ensureConnected = async () => {
 
 // Middleware to ensure DB connection is ready for any incoming request
 app.use(async (req, res, next) => {
+  if (req.path === '/api/health' || req.path === '/health') {
+    return next();
+  }
   try {
     await ensureConnected();
     next();

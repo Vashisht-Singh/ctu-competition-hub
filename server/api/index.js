@@ -3338,15 +3338,18 @@ var connectDB = async () => {
       console.log(`\u2705 Connected to In-Memory MongoDB at: ${uri}`);
       return;
     }
-    console.log(`\u23F3 Attempting connection to MongoDB at: ${ENV.MONGODB_URI}`);
+    console.log(`\u23F3 Attempting connection to MongoDB at: ${ENV.MONGODB_URI.replace(/:([^@]+)@/, ":****@")}`);
     try {
       await mongoose16.connect(ENV.MONGODB_URI, {
-        serverSelectionTimeoutMS: 1e4
+        serverSelectionTimeoutMS: 8e3
       });
       console.log(`\u2705 Connected to MongoDB at: ${ENV.MONGODB_URI.replace(/:([^@]+)@/, ":****@")}`);
       return;
     } catch (primaryErr) {
       console.warn(`\u26A0\uFE0F Could not connect to primary MongoDB (${primaryErr.message}).`);
+      if (process.env.VERCEL) {
+        throw new Error(`MongoDB connection error: ${primaryErr.message}. Verify MONGODB_URI and Atlas Network Access (0.0.0.0/0).`);
+      }
       console.log("\u26A1 Falling back to embedded MongoMemoryServer for standalone zero-config runtime...");
       const { MongoMemoryServer } = await import("mongodb-memory-server");
       mongodInstance = await MongoMemoryServer.create();
@@ -3356,7 +3359,10 @@ var connectDB = async () => {
     }
   } catch (error) {
     console.error("\u274C MongoDB connection error:", error.message);
-    process.exit(1);
+    if (!process.env.VERCEL) {
+      process.exit(1);
+    }
+    throw error;
   }
 };
 var disconnectDB = async () => {
@@ -4296,6 +4302,9 @@ var ensureConnected = async () => {
   }
 };
 app.use(async (req, res, next) => {
+  if (req.path === "/api/health" || req.path === "/health") {
+    return next();
+  }
   try {
     await ensureConnected();
     next();
