@@ -49,15 +49,14 @@ export const runSeed = async () => {
 
   console.log('🧹 Cleaned existing database collections.');
 
-  // Common password for demo accounts
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash('ctu@12345', salt);
+  // Common password for demo accounts (auto-hashed by UserSchema.pre('save'))
+  const defaultPassword = 'ctu@12345';
 
   // 1. Create Core Administrators
   const superAdmin = await User.create({
     name: 'Er. Gurvinder Singh',
     email: 'superadmin@ctuniversity.in',
-    password: hashedPassword,
+    password: defaultPassword,
     roles: [UserRole.SUPER_ADMIN, UserRole.DSW_ADMIN],
     designation: 'Chancellor / Chief Administrator',
     phone: '+91 98765 00001',
@@ -68,7 +67,7 @@ export const runSeed = async () => {
   const dswAdmin = await User.create({
     name: 'Dr. Gurpreet Singh',
     email: 'dsw@ctuniversity.in',
-    password: hashedPassword,
+    password: defaultPassword,
     roles: [UserRole.DSW_ADMIN],
     designation: 'Director Student Welfare (DSW)',
     department: 'Directorate of Student Welfare',
@@ -198,7 +197,7 @@ export const runSeed = async () => {
 
   const createdCoordinators: any[] = [];
   for (const c of schoolCoordinatorsData) {
-    const coord = await User.create({ ...c, password: hashedPassword, isActive: true });
+    const coord = await User.create({ ...c, password: defaultPassword, isActive: true });
     createdCoordinators.push(coord);
   }
 
@@ -241,7 +240,7 @@ export const runSeed = async () => {
 
   const createdCulturalCoordinators: any[] = [];
   for (const cc of culturalCoordinatorsData) {
-    const culCoord = await User.create({ ...cc, password: hashedPassword, isActive: true });
+    const culCoord = await User.create({ ...cc, password: defaultPassword, isActive: true });
     createdCulturalCoordinators.push(culCoord);
 
     // Update school model & record assignment
@@ -325,7 +324,7 @@ export const runSeed = async () => {
 
   const createdFaculty: any[] = [];
   for (const f of facultyMembersData) {
-    const fac = await User.create({ ...f, password: hashedPassword, isActive: true });
+    const fac = await User.create({ ...f, password: defaultPassword, isActive: true });
     createdFaculty.push(fac);
   }
 
@@ -383,7 +382,7 @@ export const runSeed = async () => {
 
   const createdStudents: any[] = [];
   for (const s of studentsData) {
-    const stu = await User.create({ ...s, password: hashedPassword, isActive: true });
+    const stu = await User.create({ ...s, password: defaultPassword, isActive: true });
     createdStudents.push(stu);
   }
 
