@@ -8,7 +8,9 @@
     "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
     "dev:server": "npm run dev --workspace=server",
     "dev:client": "npm run dev --workspace=client",
-    "build": "npm run build --workspace=server && npm run build --workspace=client",
+    "build:server": "esbuild server/src/server.ts --bundle --platform=node --target=node18 --format=esm --packages=external --outfile=api/index.js",
+    "build:client": "npm run build --workspace=client",
+    "build": "npm run build:server && npm run build:client",
     "seed": "npm run seed --workspace=server",
     "install:all": "npm install && npm install --workspace=server && npm install --workspace=client"
   },
@@ -31,6 +33,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.7",
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "esbuild": "^0.25.0"
   }
 }
