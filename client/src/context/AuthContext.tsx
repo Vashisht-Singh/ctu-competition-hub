@@ -6,9 +6,9 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
-  login: (credentials: { email: string; password: string }) => Promise<boolean>;
+  login: (credentials: { email: string; password: string }) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
-  switchRole: (role: UserRole) => Promise<boolean>;
+  switchRole: (role: UserRole) => Promise<{ success: boolean; message?: string }>;
   hasRole: (role: UserRole) => boolean;
   hasAnyRole: (roles: UserRole[]) => boolean;
   refreshUser: () => Promise<void>;
@@ -48,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [token]);
 
-  const login = async (credentials: { email: string; password: string }): Promise<boolean> => {
+  const login = async (credentials: { email: string; password: string }): Promise<{ success: boolean; message?: string }> => {
     setIsLoading(true);
     try {
       const res = await api.login(credentials);
@@ -57,13 +57,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setToken(res.data.token);
         setUser(res.data.user);
         setIsLoading(false);
-        return true;
+        return { success: true };
       }
       setIsLoading(false);
-      return false;
-    } catch (err) {
+      return { success: false, message: res.message || 'Invalid email or password.' };
+    } catch (err: any) {
       setIsLoading(false);
-      return false;
+      return { success: false, message: err?.message || 'Login failed. Please check network connection.' };
     }
   };
 
@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
-  const switchRole = async (role: UserRole): Promise<boolean> => {
+  const switchRole = async (role: UserRole): Promise<{ success: boolean; message?: string }> => {
     setIsLoading(true);
     try {
       const res = await api.switchDemoRole(role);
@@ -82,13 +82,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setToken(res.data.token);
         setUser(res.data.user);
         setIsLoading(false);
-        return true;
+        return { success: true };
       }
       setIsLoading(false);
-      return false;
-    } catch {
+      return { success: false, message: res.message || 'Server rejected role switch.' };
+    } catch (err: any) {
       setIsLoading(false);
-      return false;
+      return { success: false, message: err?.message || 'Network connection failed.' };
     }
   };
 

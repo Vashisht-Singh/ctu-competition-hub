@@ -194,7 +194,7 @@ import dotenv from "dotenv";
 dotenv.config();
 var ENV = {
   PORT: process.env.PORT || 5e3,
-  MONGODB_URI: process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/ctu_competition_hub",
+  MONGODB_URI: process.env.MONGODB_URI || "mongodb+srv://vashishtsandhu_db_user:TJ8jxQgCdpg9fWZ6@cluster0.ixwtbna.mongodb.net/ctu_competition_hub?retryWrites=true&w=majority",
   USE_IN_MEMORY_DB: process.env.USE_IN_MEMORY_DB === "true" || false,
   JWT_SECRET: process.env.JWT_SECRET || "ctu_super_secure_jwt_secret_key_2026_dsw_competition_hub",
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || "ctu_super_secure_refresh_secret_key_2026_dsw_competition_hub",
@@ -298,9 +298,6 @@ var disconnectDB = async () => {
 
 // server/src/app.ts
 init_User();
-
-// server/src/scripts/seed.ts
-import bcrypt2 from "bcryptjs";
 
 // server/src/models/index.ts
 init_User();
@@ -841,12 +838,11 @@ var runSeed = async () => {
     AuditLog.deleteMany({})
   ]);
   console.log("\u{1F9F9} Cleaned existing database collections.");
-  const salt = await bcrypt2.genSalt(10);
-  const hashedPassword = await bcrypt2.hash("ctu@12345", salt);
+  const defaultPassword = "ctu@12345";
   const superAdmin = await User.create({
     name: "Er. Gurvinder Singh",
     email: "superadmin@ctuniversity.in",
-    password: hashedPassword,
+    password: defaultPassword,
     roles: ["SUPER_ADMIN" /* SUPER_ADMIN */, "DSW_ADMIN" /* DSW_ADMIN */],
     designation: "Chancellor / Chief Administrator",
     phone: "+91 98765 00001",
@@ -856,7 +852,7 @@ var runSeed = async () => {
   const dswAdmin = await User.create({
     name: "Dr. Gurpreet Singh",
     email: "dsw@ctuniversity.in",
-    password: hashedPassword,
+    password: defaultPassword,
     roles: ["DSW_ADMIN" /* DSW_ADMIN */],
     designation: "Director Student Welfare (DSW)",
     department: "Directorate of Student Welfare",
@@ -977,7 +973,7 @@ var runSeed = async () => {
   ];
   const createdCoordinators = [];
   for (const c of schoolCoordinatorsData) {
-    const coord = await User.create({ ...c, password: hashedPassword, isActive: true });
+    const coord = await User.create({ ...c, password: defaultPassword, isActive: true });
     createdCoordinators.push(coord);
   }
   const culturalCoordinatorsData = [
@@ -1017,7 +1013,7 @@ var runSeed = async () => {
   ];
   const createdCulturalCoordinators = [];
   for (const cc of culturalCoordinatorsData) {
-    const culCoord = await User.create({ ...cc, password: hashedPassword, isActive: true });
+    const culCoord = await User.create({ ...cc, password: defaultPassword, isActive: true });
     createdCulturalCoordinators.push(culCoord);
     await School.findByIdAndUpdate(cc.school, {
       culturalCoordinator: culCoord._id,
@@ -1094,7 +1090,7 @@ var runSeed = async () => {
   ];
   const createdFaculty = [];
   for (const f of facultyMembersData) {
-    const fac = await User.create({ ...f, password: hashedPassword, isActive: true });
+    const fac = await User.create({ ...f, password: defaultPassword, isActive: true });
     createdFaculty.push(fac);
   }
   const studentsData = [
@@ -1150,7 +1146,7 @@ var runSeed = async () => {
   ];
   const createdStudents = [];
   for (const s of studentsData) {
-    const stu = await User.create({ ...s, password: hashedPassword, isActive: true });
+    const stu = await User.create({ ...s, password: defaultPassword, isActive: true });
     createdStudents.push(stu);
   }
   console.log(`\u{1F393} Created ${createdStudents.length} student demo accounts.`);

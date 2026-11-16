@@ -17,7 +17,7 @@ import {
 
 export const Navbar: React.FC = () => {
   const { user, logout, switchRole } = useAuth();
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotification();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, showToast } = useNotification();
   const navigate = useNavigate();
 
   const [showRoleMenu, setShowRoleMenu] = useState(false);
@@ -43,20 +43,25 @@ export const Navbar: React.FC = () => {
 
   const handleRoleSelect = async (role: UserRole) => {
     setShowRoleMenu(false);
-    await switchRole(role);
-    // Navigate to appropriate role dashboard
-    if (role === UserRole.DSW_ADMIN || role === UserRole.SUPER_ADMIN) {
-      navigate('/dsw/dashboard');
-    } else if (role === UserRole.SCHOOL_COORDINATOR) {
-      navigate('/school/dashboard');
-    } else if (role === UserRole.CULTURAL_COORDINATOR) {
-      navigate('/cultural/dashboard');
-    } else if (role === UserRole.FACULTY) {
-      navigate('/faculty/dashboard');
-    } else if (role === UserRole.JUDGE) {
-      navigate('/judging/dashboard');
+    const result = await switchRole(role);
+    if (result.success) {
+      showToast(`Switched to ${role.replace('_', ' ')}!`, 'success');
+      // Navigate to appropriate role dashboard
+      if (role === UserRole.DSW_ADMIN || role === UserRole.SUPER_ADMIN) {
+        navigate('/dsw/dashboard');
+      } else if (role === UserRole.SCHOOL_COORDINATOR) {
+        navigate('/school/dashboard');
+      } else if (role === UserRole.CULTURAL_COORDINATOR) {
+        navigate('/cultural/dashboard');
+      } else if (role === UserRole.FACULTY) {
+        navigate('/faculty/dashboard');
+      } else if (role === UserRole.JUDGE) {
+        navigate('/judging/dashboard');
+      } else {
+        navigate('/student/dashboard');
+      }
     } else {
-      navigate('/student/dashboard');
+      showToast(result.message || 'Failed to switch role. Please try again.', 'error');
     }
   };
 

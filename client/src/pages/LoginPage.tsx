@@ -18,15 +18,15 @@ export const LoginPage: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const success = await login({ email, password });
-      if (success) {
+      const result = await login({ email, password });
+      if (result.success) {
         showToast('Login successful!', 'success');
         navigate('/dsw/dashboard');
       } else {
-        showToast('Invalid email or password. Use demo quick switcher below.', 'error');
+        showToast(result.message || 'Invalid email or password. Use demo quick switcher below.', 'error');
       }
     } catch {
-      showToast('Login failed', 'error');
+      showToast('Login failed. Please check network connection.', 'error');
     } finally {
       setLoading(false);
     }
@@ -35,8 +35,8 @@ export const LoginPage: React.FC = () => {
   const handleQuickRole = async (role: UserRole) => {
     setLoading(true);
     try {
-      const success = await switchRole(role);
-      if (success) {
+      const result = await switchRole(role);
+      if (result.success) {
         showToast(`Signed in as ${role.replace('_', ' ')}!`, 'success');
         if (role === UserRole.DSW_ADMIN || role === UserRole.SUPER_ADMIN) {
           navigate('/dsw/dashboard');
@@ -51,9 +51,11 @@ export const LoginPage: React.FC = () => {
         } else {
           navigate('/student/dashboard');
         }
+      } else {
+        showToast(result.message || 'Quick role switch failed. Please try again.', 'error');
       }
     } catch {
-      showToast('Quick switch failed', 'error');
+      showToast('Quick switch failed. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
