@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { Competition, School, CompetitionCategory, CompetitionScope, CompetitionStatus } from '../types';
+import { Competition, School, CompetitionCategory, CompetitionScope, CompetitionStatus, UserRole } from '../types';
 import { Badge } from '../components/Badge';
 import { Modal } from '../components/Modal';
 import { useAuth } from '../context/AuthContext';
@@ -18,6 +18,9 @@ import {
   ArrowRight,
   CheckCircle2,
   Clock,
+  LogIn,
+  LayoutDashboard,
+  UserPlus,
 } from 'lucide-react';
 
 export const DiscoveryPage: React.FC = () => {
@@ -142,12 +145,22 @@ export const DiscoveryPage: React.FC = () => {
     }
   };
 
+  const getDashboardPath = () => {
+    if (!user) return '/login';
+    if (user.roles.includes(UserRole.DSW_ADMIN) || user.roles.includes(UserRole.SUPER_ADMIN)) return '/dsw/dashboard';
+    if (user.roles.includes(UserRole.SCHOOL_COORDINATOR)) return '/school/dashboard';
+    if (user.roles.includes(UserRole.CULTURAL_COORDINATOR)) return '/cultural/dashboard';
+    if (user.roles.includes(UserRole.FACULTY)) return '/faculty/dashboard';
+    if (user.roles.includes(UserRole.JUDGE)) return '/judging/dashboard';
+    return '/student/dashboard';
+  };
+
   return (
     <div className="space-y-8">
       {/* Hero Section */}
       <section className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-ctu-navy via-[#0e2444] to-[#1e3a8a] text-white p-8 sm:p-12 shadow-2xl border border-blue-900/50">
         <div className="absolute inset-0 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:24px_24px] opacity-15" />
-        <div className="relative z-10 max-w-3xl space-y-4">
+        <div className="relative z-10 max-w-3xl space-y-5">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-200 text-xs font-semibold backdrop-blur">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
             <span>CT University Official Competition Portal</span>
@@ -158,6 +171,38 @@ export const DiscoveryPage: React.FC = () => {
           <p className="text-blue-100/90 text-sm sm:text-base leading-relaxed">
             Centralized platform uniting all 8 schools of CT University, Ludhiana. Explore national hackathons, moot courts, cultural festivals, robotics leagues, and management conclaves with real-time verification and digital certification.
           </p>
+
+          {/* Direct Navigation CTAs */}
+          <div className="pt-2 flex flex-wrap items-center gap-3">
+            {user ? (
+              <Link
+                to={getDashboardPath()}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold text-xs shadow-lg shadow-blue-900/30 transition-all hover:scale-105"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span>Go to My Dashboard ({user.roles[0]?.replace('_', ' ')})</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs shadow-lg shadow-amber-400/20 transition-all hover:scale-105"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Sign In to University Portal</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+                <Link
+                  to="/register"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/25 text-white font-bold text-xs backdrop-blur transition-all"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>Student Registration</span>
+                </Link>
+              </>
+            )}
+          </div>
 
           <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-semibold text-blue-200">
             <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl backdrop-blur">

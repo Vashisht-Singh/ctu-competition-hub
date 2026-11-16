@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { Layout } from './components/Layout';
+import { PublicLayout } from './components/PublicLayout';
 
 // Pages
 import { DiscoveryPage } from './pages/DiscoveryPage';
@@ -88,13 +89,17 @@ export function App() {
       <AuthProvider>
         <NotificationProvider>
           <Routes>
-            {/* Public Entry Points */}
-            <Route path="/" element={<RootRedirector />} />
-            <Route path="/discover" element={<DiscoveryPage />} />
-            <Route path="/competitions/:id" element={<CompetitionDetailPage />} />
+            {/* Public Layout Entry Points with Top Navigation */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<RootRedirector />} />
+              <Route path="/discover" element={<DiscoveryPage />} />
+              <Route path="/competitions/:id" element={<CompetitionDetailPage />} />
+              <Route path="/verify-certificate/:certNumber" element={<CertificateVerifyPage />} />
+            </Route>
+
+            {/* Standalone Auth Pages */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/verify-certificate/:certNumber" element={<CertificateVerifyPage />} />
 
             {/* Authenticated Dashboard Pages inside Layout */}
             <Route
