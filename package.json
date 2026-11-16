@@ -2,13 +2,13 @@
   "name": "ctu-competition-hub",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "CTU Competition Hub - Enterprise-Grade MERN Stack Competition Management Platform for CT University",
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
     "dev:server": "npm run dev --workspace=server",
     "dev:client": "npm run dev --workspace=client",
-    "build": "npm run build --workspace=client",
-    "build:all": "npm run build --workspace=server && npm run build --workspace=client",
+    "build": "npm run build --workspace=server && npm run build --workspace=client",
     "seed": "npm run seed --workspace=server",
     "install:all": "npm install && npm install --workspace=server && npm install --workspace=client"
   },
