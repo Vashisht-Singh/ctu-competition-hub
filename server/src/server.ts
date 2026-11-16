@@ -1,37 +1,6 @@
-import { createApp } from './app.js';
-import { connectDB, disconnectDB } from './config/db.js';
+import app, { ensureConnected } from './app.js';
+import { disconnectDB } from './config/db.js';
 import { ENV } from './config/env.js';
-import { User } from './models/User.js';
-import { runSeed } from './scripts/seed.js';
-
-export const app = createApp();
-
-let isConnected = false;
-export const ensureConnected = async () => {
-  if (!isConnected) {
-    await connectDB();
-    const userCount = await User.countDocuments();
-    if (userCount === 0) {
-      console.log('🌱 No users found in database. Automatically running initial CTU seed data...');
-      await runSeed();
-    }
-    isConnected = true;
-  }
-};
-
-// Middleware to ensure DB connection is ready for any incoming request
-app.use(async (req, res, next) => {
-  if (req.path === '/api/health' || req.path === '/health') {
-    return next();
-  }
-  try {
-    await ensureConnected();
-    next();
-  } catch (err: any) {
-    console.error('Database connection error in request:', err);
-    res.status(500).json({ success: false, message: 'Database connection failed: ' + err.message });
-  }
-});
 
 // Run standalone server when not in Vercel serverless environment
 if (!process.env.VERCEL) {

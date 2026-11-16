@@ -3,6 +3,22 @@ import cors from 'cors';
 import morgan from 'morgan';
 import { ENV } from './config/env.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { connectDB } from './config/db.js';
+import { User } from './models/User.js';
+import { runSeed } from './scripts/seed.js';
+
+let isConnected = false;
+export const ensureConnected = async () => {
+  if (!isConnected) {
+    await connectDB();
+    const userCount = await User.countDocuments();
+    if (userCount === 0) {
+      console.log('🌱 No users found in database. Automatically running initial CTU seed data...');
+      await runSeed();
+    }
+    isConnected = true;
+  }
+};
 
 // Route imports
 import authRoutes from './routes/authRoutes.js';
@@ -43,6 +59,20 @@ export const createApp = (): express.Application => {
     });
   });
 
+  // Database connection middleware for all API requests (skips health check)
+  app.use(async (req, res, next) => {
+    if (req.path === '/api/health' || req.path === '/health') {
+      return next();
+    }
+    try {
+      await ensureConnected();
+      next();
+    } catch (err: any) {
+      console.error('Database connection error in request:', err);
+      res.status(500).json({ success: false, message: 'Database connection failed: ' + err.message });
+    }
+  });
+
   // Mount API modules
   app.use('/api/auth', authRoutes);
   app.use('/api/schools', schoolRoutes);
@@ -62,3 +92,6 @@ export const createApp = (): express.Application => {
 
   return app;
 };
+
+export const app = createApp();
+export default app;
