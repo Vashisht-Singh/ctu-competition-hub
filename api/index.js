@@ -2535,7 +2535,7 @@ router4.post(
         requiredVolunteersCount: requiredVolunteersCount ? Number(requiredVolunteersCount) : 5,
         equipment: equipment || [],
         venueResources: venueResources || [],
-        budgetProposal: budgetProposal ? Number(budgetProposal) : 0,
+        budgetProposal: typeof budgetProposal === "object" && budgetProposal !== null ? Number(budgetProposal.totalEstimatedBudget || budgetProposal.amount || 0) || 0 : Number(budgetProposal) || 0,
         prizeDetails: prizeDetails || {
           winner: "\u20B910,000 + Trophy + Certificate",
           firstRunnerUp: "\u20B95,000 + Trophy + Certificate",
@@ -2658,7 +2658,11 @@ router4.put("/:id", authenticate, async (req, res) => {
     ];
     updatableFields.forEach((field) => {
       if (req.body[field] !== void 0) {
-        competition[field] = req.body[field];
+        if (field === "budgetProposal") {
+          competition.budgetProposal = typeof req.body.budgetProposal === "object" && req.body.budgetProposal !== null ? Number(req.body.budgetProposal.totalEstimatedBudget || req.body.budgetProposal.amount || 0) || 0 : Number(req.body.budgetProposal) || 0;
+        } else {
+          competition[field] = req.body[field];
+        }
       }
     });
     if (req.body.resubmit && competition.status === "REVISION_REQUIRED" /* REVISION_REQUIRED */) {
