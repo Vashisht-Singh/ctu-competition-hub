@@ -4262,7 +4262,7 @@ var createApp = () => {
   if (ENV.NODE_ENV !== "test") {
     app2.use(morgan("dev"));
   }
-  app2.get("/api/health", (req, res) => {
+  app2.get(["/api/health", "/health"], (req, res) => {
     res.json({
       status: "UP",
       platform: "CTU Competition Hub",
@@ -4272,7 +4272,7 @@ var createApp = () => {
     });
   });
   app2.use(async (req, res, next) => {
-    if (req.path === "/api/health" || req.path === "/health") {
+    if (req.path === "/api/health" || req.path === "/health" || req.path === "/") {
       return next();
     }
     try {
@@ -4280,33 +4280,43 @@ var createApp = () => {
       next();
     } catch (err) {
       console.error("Database connection error in request:", err);
-      res.status(500).json({ success: false, message: "Database connection failed: " + err.message });
+      res.status(500).json({
+        success: false,
+        message: "Database connection failed: " + err.message + ". Please ensure Atlas Network Access (0.0.0.0/0) is enabled."
+      });
     }
   });
-  app2.use("/api/auth", authRoutes_default);
-  app2.use("/api/schools", schoolRoutes_default);
-  app2.use("/api/coordinators", coordinatorRoutes_default);
-  app2.use("/api/competitions", competitionRoutes_default);
-  app2.use("/api/registrations", registrationRoutes_default);
-  app2.use("/api/duties", facultyDutyRoutes_default);
-  app2.use("/api/judging", judgingRoutes_default);
-  app2.use("/api/results", resultRoutes_default);
-  app2.use("/api/certificates", certificateRoutes_default);
-  app2.use("/api/notifications", notificationRoutes_default);
-  app2.use("/api/reports", reportRoutes_default);
-  app2.use("/api/audit-logs", auditRoutes_default);
+  const mountRoutes = (prefix) => {
+    app2.use(`${prefix}/auth`, authRoutes_default);
+    app2.use(`${prefix}/schools`, schoolRoutes_default);
+    app2.use(`${prefix}/coordinators`, coordinatorRoutes_default);
+    app2.use(`${prefix}/competitions`, competitionRoutes_default);
+    app2.use(`${prefix}/registrations`, registrationRoutes_default);
+    app2.use(`${prefix}/duties`, facultyDutyRoutes_default);
+    app2.use(`${prefix}/judging`, judgingRoutes_default);
+    app2.use(`${prefix}/results`, resultRoutes_default);
+    app2.use(`${prefix}/certificates`, certificateRoutes_default);
+    app2.use(`${prefix}/notifications`, notificationRoutes_default);
+    app2.use(`${prefix}/reports`, reportRoutes_default);
+    app2.use(`${prefix}/audit-logs`, auditRoutes_default);
+  };
+  mountRoutes("/api");
+  mountRoutes("");
   app2.use(errorHandler);
   return app2;
 };
 var app = createApp();
-var app_default = app;
+function handler(req, res) {
+  return app(req, res);
+}
+Object.assign(handler, app);
 
 // server/src/server.ts
 if (!process.env.VERCEL) {
   const startServer = async () => {
     try {
       await ensureConnected();
-      const server = app_default.listen(ENV.PORT, () => {
+      const server = handler.listen(ENV.PORT, () => {
         console.log(`=======================================================`);
         console.log(`\u{1F680} CTU Competition Hub Server is LIVE on port ${ENV.PORT}`);
         console.log(`\u{1F3DB}\uFE0F  Institution: CT University, Ludhiana, Punjab, India`);
@@ -4331,7 +4341,7 @@ if (!process.env.VERCEL) {
   };
   startServer();
 }
-var server_default = app_default;
+var server_default = handler;
 export {
   server_default as default
 };

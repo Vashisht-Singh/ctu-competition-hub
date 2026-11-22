@@ -48,8 +48,8 @@ export const createApp = (): express.Application => {
     app.use(morgan('dev'));
   }
 
-  // Health check
-  app.get('/api/health', (req, res) => {
+  // Health check (supports both /api/health and /health)
+  app.get(['/api/health', '/health'], (req, res) => {
     res.json({
       status: 'UP',
       platform: 'CTU Competition Hub',
@@ -61,7 +61,7 @@ export const createApp = (): express.Application => {
 
   // Database connection middleware for all API requests (skips health check)
   app.use(async (req, res, next) => {
-    if (req.path === '/api/health' || req.path === '/health') {
+    if (req.path === '/api/health' || req.path === '/health' || req.path === '/') {
       return next();
     }
     try {
@@ -69,23 +69,31 @@ export const createApp = (): express.Application => {
       next();
     } catch (err: any) {
       console.error('Database connection error in request:', err);
-      res.status(500).json({ success: false, message: 'Database connection failed: ' + err.message });
+      res.status(500).json({
+        success: false,
+        message: 'Database connection failed: ' + err.message + '. Please ensure Atlas Network Access (0.0.0.0/0) is enabled.',
+      });
     }
   });
 
-  // Mount API modules
-  app.use('/api/auth', authRoutes);
-  app.use('/api/schools', schoolRoutes);
-  app.use('/api/coordinators', coordinatorRoutes);
-  app.use('/api/competitions', competitionRoutes);
-  app.use('/api/registrations', registrationRoutes);
-  app.use('/api/duties', facultyDutyRoutes);
-  app.use('/api/judging', judgingRoutes);
-  app.use('/api/results', resultRoutes);
-  app.use('/api/certificates', certificateRoutes);
-  app.use('/api/notifications', notificationRoutes);
-  app.use('/api/reports', reportRoutes);
-  app.use('/api/audit-logs', auditRoutes);
+  // Mount API modules under both /api and root prefixes for universal routing
+  const mountRoutes = (prefix: string) => {
+    app.use(`${prefix}/auth`, authRoutes);
+    app.use(`${prefix}/schools`, schoolRoutes);
+    app.use(`${prefix}/coordinators`, coordinatorRoutes);
+    app.use(`${prefix}/competitions`, competitionRoutes);
+    app.use(`${prefix}/registrations`, registrationRoutes);
+    app.use(`${prefix}/duties`, facultyDutyRoutes);
+    app.use(`${prefix}/judging`, judgingRoutes);
+    app.use(`${prefix}/results`, resultRoutes);
+    app.use(`${prefix}/certificates`, certificateRoutes);
+    app.use(`${prefix}/notifications`, notificationRoutes);
+    app.use(`${prefix}/reports`, reportRoutes);
+    app.use(`${prefix}/audit-logs`, auditRoutes);
+  };
+
+  mountRoutes('/api');
+  mountRoutes('');
 
   // Central error handling
   app.use(errorHandler);
@@ -94,4 +102,11 @@ export const createApp = (): express.Application => {
 };
 
 export const app = createApp();
-export default app;
+
+// Standard serverless function default export for Vercel / AWS Lambda
+export default function handler(req: any, res: any) {
+  return app(req, res);
+}
+
+// Attach app properties for backward compatibility with framework loaders
+Object.assign(handler, app);
