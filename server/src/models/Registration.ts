@@ -17,6 +17,9 @@ export interface IRegistration extends Document {
   participantType: 'INDIVIDUAL' | 'TEAM';
   userId: mongoose.Types.ObjectId;
   school?: mongoose.Types.ObjectId;
+  departmentId?: mongoose.Types.ObjectId;
+  departmentName?: string;
+  teamId?: mongoose.Types.ObjectId;
   teamName?: string;
   teamMembers: ITeamMemberInfo[];
   status: RegistrationStatus;
@@ -60,6 +63,19 @@ const RegistrationSchema = new Schema<IRegistration>(
       type: Schema.Types.ObjectId,
       ref: 'School',
       index: true,
+    },
+    departmentId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Department',
+      index: true,
+    },
+    departmentName: {
+      type: String,
+      trim: true,
+    },
+    teamId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Team',
     },
     teamName: {
       type: String,

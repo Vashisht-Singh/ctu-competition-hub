@@ -6,6 +6,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import { connectDB } from './config/db.js';
 import { User } from './models/User.js';
 import { runSeed } from './scripts/seed.js';
+import { ensureOrgHierarchySynced } from './services/hierarchyService.js';
 
 let isConnected = false;
 export const ensureConnected = async () => {
@@ -16,6 +17,7 @@ export const ensureConnected = async () => {
       console.log('🌱 No users found in database. Automatically running initial CTU seed data...');
       await runSeed();
     }
+    await ensureOrgHierarchySynced();
     isConnected = true;
   }
 };
@@ -23,6 +25,7 @@ export const ensureConnected = async () => {
 // Route imports
 import authRoutes from './routes/authRoutes.js';
 import schoolRoutes from './routes/schoolRoutes.js';
+import departmentRoutes from './routes/departmentRoutes.js';
 import coordinatorRoutes from './routes/coordinatorRoutes.js';
 import competitionRoutes from './routes/competitionRoutes.js';
 import registrationRoutes from './routes/registrationRoutes.js';
@@ -33,6 +36,7 @@ import certificateRoutes from './routes/certificateRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import auditRoutes from './routes/auditRoutes.js';
+import monitoringRoutes from './routes/monitoringRoutes.js';
 
 export const createApp = (): express.Application => {
   const app = express();
@@ -80,6 +84,7 @@ export const createApp = (): express.Application => {
   const mountRoutes = (prefix: string) => {
     app.use(`${prefix}/auth`, authRoutes);
     app.use(`${prefix}/schools`, schoolRoutes);
+    app.use(`${prefix}/departments`, departmentRoutes);
     app.use(`${prefix}/coordinators`, coordinatorRoutes);
     app.use(`${prefix}/competitions`, competitionRoutes);
     app.use(`${prefix}/registrations`, registrationRoutes);
@@ -90,6 +95,7 @@ export const createApp = (): express.Application => {
     app.use(`${prefix}/notifications`, notificationRoutes);
     app.use(`${prefix}/reports`, reportRoutes);
     app.use(`${prefix}/audit-logs`, auditRoutes);
+    app.use(`${prefix}/monitoring`, monitoringRoutes);
   };
 
   mountRoutes('/api');

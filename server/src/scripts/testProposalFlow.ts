@@ -33,7 +33,7 @@ async function testProposalFlow() {
       password: 'ctu@12345',
     }),
   });
-  const soetLoginData = await soetLoginRes.json();
+  const soetLoginData = (await soetLoginRes.json()) as any;
   if (!soetLoginData.success) {
     throw new Error('SOET Coordinator login failed: ' + JSON.stringify(soetLoginData));
   }
@@ -93,7 +93,7 @@ async function testProposalFlow() {
     body: JSON.stringify(proposalPayload),
   });
 
-  const createData = await createRes.json();
+  const createData = (await createRes.json()) as any;
   if (!createData.success) {
     throw new Error('Proposal creation failed: ' + JSON.stringify(createData));
   }
@@ -112,7 +112,7 @@ async function testProposalFlow() {
       password: 'ctu@12345',
     }),
   });
-  const dswLoginData = await dswLoginRes.json();
+  const dswLoginData = (await dswLoginRes.json()) as any;
   if (!dswLoginData.success) {
     throw new Error('DSW Admin login failed: ' + JSON.stringify(dswLoginData));
   }
@@ -125,7 +125,7 @@ async function testProposalFlow() {
   const queueRes = await fetch(`${baseUrl}/api/competitions`, {
     headers: { Authorization: `Bearer ${dswToken}` },
   });
-  const queueData = await queueRes.json();
+  const queueData = (await queueRes.json()) as any;
   if (!queueData.success) {
     throw new Error('Failed to fetch approval queue: ' + JSON.stringify(queueData));
   }
@@ -152,7 +152,7 @@ async function testProposalFlow() {
       remarks: 'Approved by Directorate of Student Welfare. Outstanding initiative for engineering students.',
     }),
   });
-  const approveData = await approveRes.json();
+  const approveData = (await approveRes.json()) as any;
   if (!approveData.success) {
     throw new Error('Approval failed: ' + JSON.stringify(approveData));
   }
@@ -168,7 +168,7 @@ async function testProposalFlow() {
       Authorization: `Bearer ${dswToken}`,
     },
   });
-  const publishData = await publishRes.json();
+  const publishData = (await publishRes.json()) as any;
   if (!publishData.success) {
     throw new Error('Publishing failed: ' + JSON.stringify(publishData));
   }

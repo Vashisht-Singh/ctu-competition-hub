@@ -15,6 +15,8 @@ import { DswDashboard } from './pages/dsw/DswDashboard';
 import { ProposalApprovalQueue } from './pages/dsw/ProposalApprovalQueue';
 import { CulturalCoordinatorManagement } from './pages/dsw/CulturalCoordinatorManagement';
 import { SchoolManagement } from './pages/dsw/SchoolManagement';
+import { HodDashboard } from './pages/hod/HodDashboard';
+import { HosDashboard } from './pages/hos/HosDashboard';
 import { SchoolDashboard } from './pages/school/SchoolDashboard';
 import { CreateCompetitionPage } from './pages/school/CreateCompetitionPage';
 import { CulturalCoordinatorDashboard } from './pages/cultural/CulturalCoordinatorDashboard';
@@ -70,8 +72,10 @@ const RootRedirector: React.FC = () => {
 
   if (user.roles.includes(UserRole.DSW_ADMIN) || user.roles.includes(UserRole.SUPER_ADMIN)) {
     return <Navigate to="/dsw/dashboard" replace />;
-  } else if (user.roles.includes(UserRole.SCHOOL_COORDINATOR)) {
-    return <Navigate to="/school/dashboard" replace />;
+  } else if (user.roles.includes(UserRole.HOS) || user.roles.includes(UserRole.SCHOOL_COORDINATOR)) {
+    return <Navigate to="/hos/dashboard" replace />;
+  } else if (user.roles.includes(UserRole.HOD)) {
+    return <Navigate to="/hod/dashboard" replace />;
   } else if (user.roles.includes(UserRole.CULTURAL_COORDINATOR)) {
     return <Navigate to="/cultural/dashboard" replace />;
   } else if (user.roles.includes(UserRole.FACULTY)) {
@@ -115,8 +119,10 @@ export function App() {
               <Route path="/dsw/coordinators" element={<CulturalCoordinatorManagement />} />
               <Route path="/dsw/schools" element={<SchoolManagement />} />
 
-              {/* School Coordinator */}
-              <Route path="/school/dashboard" element={<SchoolDashboard />} />
+              {/* HOD / HOS / School Coordinator */}
+              <Route path="/hod/dashboard" element={<HodDashboard />} />
+              <Route path="/hos/dashboard" element={<HosDashboard />} />
+              <Route path="/school/dashboard" element={<HosDashboard />} />
               <Route path="/cultural/dashboard" element={<CulturalCoordinatorDashboard />} />
               <Route path="/competitions/create" element={<CreateCompetitionPage />} />
 

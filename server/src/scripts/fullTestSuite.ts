@@ -95,7 +95,7 @@ async function main() {
   await runTest('4.1 GET /api/health', async () => {
     const res = await fetch(`${baseUrl}/api/health`);
     if (res.status !== 200) throw new Error(`Expected status 200, got ${res.status}`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     if (data.status !== 'UP') throw new Error(`Expected status UP, got ${data.status}`);
   });
 
@@ -107,7 +107,7 @@ async function main() {
       body: JSON.stringify({ email: 'dsw@ctuniversity.in', password: 'ctu@12345' }),
     });
     if (res.status !== 200) throw new Error(`Expected status 200, got ${res.status} ${await res.text()}`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     if (!data.success || !data.data?.token) throw new Error(`Login response missing token: ${JSON.stringify(data)}`);
     dswToken = data.data.token;
   });
@@ -120,7 +120,7 @@ async function main() {
       body: JSON.stringify({ email: 'dsw@ctuniversity.in', password: 'wrongpassword' }),
     });
     if (res.status !== 401) throw new Error(`Expected status 401, got ${res.status}`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     if (data.success !== false) throw new Error(`Expected success: false, got: ${JSON.stringify(data)}`);
   });
 
@@ -142,7 +142,7 @@ async function main() {
         body: JSON.stringify({ role }),
       });
       if (res.status !== 200) throw new Error(`Expected status 200, got ${res.status}: ${await res.text()}`);
-      const data = await res.json();
+      const data = (await res.json()) as any;
       if (!data.success || !data.data?.token) throw new Error(`Switch response missing token: ${JSON.stringify(data)}`);
 
       if (role === 'STUDENT') studentToken = data.data.token;
@@ -157,7 +157,7 @@ async function main() {
       headers: { Authorization: `Bearer ${dswToken}` },
     });
     if (res.status !== 200) throw new Error(`Expected status 200, got ${res.status}`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     if (!data.success || data.data?.email !== 'dsw@ctuniversity.in') {
       throw new Error(`Unexpected user returned: ${JSON.stringify(data)}`);
     }
@@ -167,7 +167,7 @@ async function main() {
   await runTest('4.6 GET /api/schools (All CTU Schools)', async () => {
     const res = await fetch(`${baseUrl}/api/schools`);
     if (res.status !== 200) throw new Error(`Expected status 200, got ${res.status}`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     if (!data.success || data.data?.length !== 8) {
       throw new Error(`Expected 8 schools, got ${data.data?.length}`);
     }
@@ -177,7 +177,7 @@ async function main() {
   await runTest('4.7 GET /api/competitions/public (Discovery Portal)', async () => {
     const res = await fetch(`${baseUrl}/api/competitions/public`);
     if (res.status !== 200) throw new Error(`Expected status 200, got ${res.status}`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     if (!data.success || !Array.isArray(data.data)) {
       throw new Error(`Expected competition list, got ${JSON.stringify(data)}`);
     }
@@ -189,7 +189,7 @@ async function main() {
       headers: { Authorization: `Bearer ${studentToken}` },
     });
     if (res.status !== 200) throw new Error(`Expected status 200, got ${res.status}`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     if (!data.success) throw new Error(`Failed to get registrations: ${JSON.stringify(data)}`);
   });
 
@@ -199,7 +199,7 @@ async function main() {
       headers: { Authorization: `Bearer ${facultyToken}` },
     });
     if (res.status !== 200) throw new Error(`Expected status 200, got ${res.status}`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     if (!data.success) throw new Error(`Failed to get faculty duties: ${JSON.stringify(data)}`);
   });
 
@@ -211,7 +211,7 @@ async function main() {
       headers: { Authorization: `Bearer ${judgeToken}` },
     });
     if (res.status !== 200) throw new Error(`Expected status 200, got ${res.status}`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     if (!data.success || !data.data) throw new Error(`Failed to get rubric: ${JSON.stringify(data)}`);
   });
 
@@ -221,7 +221,7 @@ async function main() {
       headers: { Authorization: `Bearer ${dswToken}` },
     });
     if (res.status !== 200) throw new Error(`Expected status 200, got ${res.status}`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     if (!data.success) throw new Error(`Failed to get report overview: ${JSON.stringify(data)}`);
   });
 
@@ -231,7 +231,7 @@ async function main() {
     if (!cert) throw new Error('No certificate found for verification test');
     const res = await fetch(`${baseUrl}/api/certificates/verify/${cert.certificateNumber}`);
     if (res.status !== 200) throw new Error(`Expected status 200, got ${res.status}`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     if (!data.success || !data.isValid) throw new Error(`Expected valid certificate: ${JSON.stringify(data)}`);
   });
 

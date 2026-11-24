@@ -15,6 +15,7 @@ export interface ISchool extends Document {
   departments: string[];
   programmes: string[];
   deanName?: string;
+  hos?: mongoose.Types.ObjectId;
   contactEmail?: string;
   culturalCoordinator?: mongoose.Types.ObjectId;
   coordinatorHistory: ISchoolCoordinatorHistory[];
@@ -31,6 +32,7 @@ const SchoolSchema = new Schema<ISchool>(
     departments: [{ type: String, trim: true }],
     programmes: [{ type: String, trim: true }],
     deanName: { type: String, trim: true },
+    hos: { type: Schema.Types.ObjectId, ref: 'User', index: true },
     contactEmail: { type: String, lowercase: true, trim: true },
     culturalCoordinator: { type: Schema.Types.ObjectId, ref: 'User' },
     coordinatorHistory: [

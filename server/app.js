@@ -14,22 +14,31 @@ var __export = (target, all) => {
 };
 
 // server/src/types/enums.ts
-var UserRole, CompetitionScope, CompetitionCategory, CompetitionStatus, RegistrationStatus, FacultyDutyStatus, FacultyDutyCategory, ResultCategory, CertificateType;
+var UserRole, ApprovalLevel, CompetitionScope, CompetitionCategory, CompetitionStatus, RegistrationStatus, FacultyDutyStatus, FacultyDutyCategory, ResultCategory, CertificateType;
 var init_enums = __esm({
   "server/src/types/enums.ts"() {
     "use strict";
-    UserRole = /* @__PURE__ */ ((UserRole3) => {
-      UserRole3["SUPER_ADMIN"] = "SUPER_ADMIN";
-      UserRole3["DSW_ADMIN"] = "DSW_ADMIN";
-      UserRole3["SCHOOL_COORDINATOR"] = "SCHOOL_COORDINATOR";
-      UserRole3["CULTURAL_COORDINATOR"] = "CULTURAL_COORDINATOR";
-      UserRole3["COMPETITION_ORGANIZER"] = "COMPETITION_ORGANIZER";
-      UserRole3["FACULTY"] = "FACULTY";
-      UserRole3["JUDGE"] = "JUDGE";
-      UserRole3["STUDENT"] = "STUDENT";
-      UserRole3["VOLUNTEER"] = "VOLUNTEER";
-      return UserRole3;
+    UserRole = /* @__PURE__ */ ((UserRole2) => {
+      UserRole2["SUPER_ADMIN"] = "SUPER_ADMIN";
+      UserRole2["DSW_ADMIN"] = "DSW_ADMIN";
+      UserRole2["HOS"] = "HOS";
+      UserRole2["HOD"] = "HOD";
+      UserRole2["SCHOOL_COORDINATOR"] = "SCHOOL_COORDINATOR";
+      UserRole2["CULTURAL_COORDINATOR"] = "CULTURAL_COORDINATOR";
+      UserRole2["COMPETITION_ORGANIZER"] = "COMPETITION_ORGANIZER";
+      UserRole2["FACULTY"] = "FACULTY";
+      UserRole2["JUDGE"] = "JUDGE";
+      UserRole2["STUDENT"] = "STUDENT";
+      UserRole2["VOLUNTEER"] = "VOLUNTEER";
+      return UserRole2;
     })(UserRole || {});
+    ApprovalLevel = /* @__PURE__ */ ((ApprovalLevel2) => {
+      ApprovalLevel2["NONE"] = "NONE";
+      ApprovalLevel2["HOD"] = "HOD";
+      ApprovalLevel2["HOS"] = "HOS";
+      ApprovalLevel2["DSW"] = "DSW";
+      return ApprovalLevel2;
+    })(ApprovalLevel || {});
     CompetitionScope = /* @__PURE__ */ ((CompetitionScope2) => {
       CompetitionScope2["SCHOOL_LEVEL"] = "SCHOOL_LEVEL";
       CompetitionScope2["INTER_SCHOOL"] = "INTER_SCHOOL";
@@ -51,23 +60,29 @@ var init_enums = __esm({
       CompetitionCategory2["MEDIA_FILM"] = "MEDIA_FILM";
       return CompetitionCategory2;
     })(CompetitionCategory || {});
-    CompetitionStatus = /* @__PURE__ */ ((CompetitionStatus2) => {
-      CompetitionStatus2["DRAFT"] = "DRAFT";
-      CompetitionStatus2["SUBMITTED"] = "SUBMITTED";
-      CompetitionStatus2["UNDER_REVIEW"] = "UNDER_REVIEW";
-      CompetitionStatus2["REVISION_REQUIRED"] = "REVISION_REQUIRED";
-      CompetitionStatus2["RESUBMITTED"] = "RESUBMITTED";
-      CompetitionStatus2["APPROVED"] = "APPROVED";
-      CompetitionStatus2["PUBLISHED"] = "PUBLISHED";
-      CompetitionStatus2["REGISTRATION_OPEN"] = "REGISTRATION_OPEN";
-      CompetitionStatus2["REGISTRATION_CLOSED"] = "REGISTRATION_CLOSED";
-      CompetitionStatus2["IN_PROGRESS"] = "IN_PROGRESS";
-      CompetitionStatus2["COMPLETED"] = "COMPLETED";
-      CompetitionStatus2["ARCHIVED"] = "ARCHIVED";
-      CompetitionStatus2["REJECTED"] = "REJECTED";
-      CompetitionStatus2["CANCELLED"] = "CANCELLED";
-      CompetitionStatus2["POSTPONED"] = "POSTPONED";
-      return CompetitionStatus2;
+    CompetitionStatus = /* @__PURE__ */ ((CompetitionStatus3) => {
+      CompetitionStatus3["DRAFT"] = "DRAFT";
+      CompetitionStatus3["SUBMITTED_TO_HOD"] = "SUBMITTED_TO_HOD";
+      CompetitionStatus3["PENDING_HOD_APPROVAL"] = "PENDING_HOD_APPROVAL";
+      CompetitionStatus3["PENDING_HOS_APPROVAL"] = "PENDING_HOS_APPROVAL";
+      CompetitionStatus3["PENDING_DSW_APPROVAL"] = "PENDING_DSW_APPROVAL";
+      CompetitionStatus3["CHANGES_REQUESTED"] = "CHANGES_REQUESTED";
+      CompetitionStatus3["APPROVED_BY_DSW"] = "APPROVED_BY_DSW";
+      CompetitionStatus3["SUBMITTED"] = "SUBMITTED";
+      CompetitionStatus3["UNDER_REVIEW"] = "UNDER_REVIEW";
+      CompetitionStatus3["REVISION_REQUIRED"] = "REVISION_REQUIRED";
+      CompetitionStatus3["RESUBMITTED"] = "RESUBMITTED";
+      CompetitionStatus3["APPROVED"] = "APPROVED";
+      CompetitionStatus3["PUBLISHED"] = "PUBLISHED";
+      CompetitionStatus3["REGISTRATION_OPEN"] = "REGISTRATION_OPEN";
+      CompetitionStatus3["REGISTRATION_CLOSED"] = "REGISTRATION_CLOSED";
+      CompetitionStatus3["IN_PROGRESS"] = "IN_PROGRESS";
+      CompetitionStatus3["COMPLETED"] = "COMPLETED";
+      CompetitionStatus3["ARCHIVED"] = "ARCHIVED";
+      CompetitionStatus3["REJECTED"] = "REJECTED";
+      CompetitionStatus3["CANCELLED"] = "CANCELLED";
+      CompetitionStatus3["POSTPONED"] = "POSTPONED";
+      return CompetitionStatus3;
     })(CompetitionStatus || {});
     RegistrationStatus = /* @__PURE__ */ ((RegistrationStatus2) => {
       RegistrationStatus2["PENDING"] = "PENDING";
@@ -155,6 +170,7 @@ var init_User = __esm({
           }
         ],
         school: { type: Schema.Types.ObjectId, ref: "School" },
+        departmentId: { type: Schema.Types.ObjectId, ref: "Department", index: true },
         department: { type: String, trim: true },
         programme: { type: String, trim: true },
         semester: { type: Number, min: 1, max: 12 },
@@ -181,6 +197,71 @@ var init_User = __esm({
       return bcrypt.compare(candidatePassword, this.password);
     };
     User = mongoose2.model("User", UserSchema);
+  }
+});
+
+// server/src/models/School.ts
+var School_exports = {};
+__export(School_exports, {
+  School: () => School
+});
+import mongoose3, { Schema as Schema2 } from "mongoose";
+var SchoolSchema, School;
+var init_School = __esm({
+  "server/src/models/School.ts"() {
+    "use strict";
+    SchoolSchema = new Schema2(
+      {
+        name: { type: String, required: true, unique: true, trim: true },
+        code: { type: String, required: true, unique: true, uppercase: true, trim: true },
+        description: { type: String, trim: true },
+        departments: [{ type: String, trim: true }],
+        programmes: [{ type: String, trim: true }],
+        deanName: { type: String, trim: true },
+        hos: { type: Schema2.Types.ObjectId, ref: "User", index: true },
+        contactEmail: { type: String, lowercase: true, trim: true },
+        culturalCoordinator: { type: Schema2.Types.ObjectId, ref: "User" },
+        coordinatorHistory: [
+          {
+            coordinator: { type: Schema2.Types.ObjectId, ref: "User", required: true },
+            appointedAt: { type: Date, default: Date.now },
+            removedAt: { type: Date },
+            appointedBy: { type: Schema2.Types.ObjectId, ref: "User" },
+            remarks: { type: String, trim: true }
+          }
+        ],
+        isActive: { type: Boolean, default: true }
+      },
+      { timestamps: true }
+    );
+    School = mongoose3.model("School", SchoolSchema);
+  }
+});
+
+// server/src/models/Department.ts
+var Department_exports = {};
+__export(Department_exports, {
+  Department: () => Department
+});
+import mongoose4, { Schema as Schema3 } from "mongoose";
+var DepartmentSchema, Department;
+var init_Department = __esm({
+  "server/src/models/Department.ts"() {
+    "use strict";
+    DepartmentSchema = new Schema3(
+      {
+        name: { type: String, required: true, trim: true },
+        code: { type: String, required: true, uppercase: true, trim: true },
+        school: { type: Schema3.Types.ObjectId, ref: "School", required: true, index: true },
+        hod: { type: Schema3.Types.ObjectId, ref: "User", index: true },
+        description: { type: String, trim: true },
+        isActive: { type: Boolean, default: true }
+      },
+      { timestamps: true }
+    );
+    DepartmentSchema.index({ school: 1, name: 1 }, { unique: true });
+    DepartmentSchema.index({ school: 1, code: 1 }, { unique: true });
+    Department = mongoose4.model("Department", DepartmentSchema);
   }
 });
 
@@ -301,38 +382,13 @@ init_User();
 
 // server/src/models/index.ts
 init_User();
-
-// server/src/models/School.ts
-import mongoose3, { Schema as Schema2 } from "mongoose";
-var SchoolSchema = new Schema2(
-  {
-    name: { type: String, required: true, unique: true, trim: true },
-    code: { type: String, required: true, unique: true, uppercase: true, trim: true },
-    description: { type: String, trim: true },
-    departments: [{ type: String, trim: true }],
-    programmes: [{ type: String, trim: true }],
-    deanName: { type: String, trim: true },
-    contactEmail: { type: String, lowercase: true, trim: true },
-    culturalCoordinator: { type: Schema2.Types.ObjectId, ref: "User" },
-    coordinatorHistory: [
-      {
-        coordinator: { type: Schema2.Types.ObjectId, ref: "User", required: true },
-        appointedAt: { type: Date, default: Date.now },
-        removedAt: { type: Date },
-        appointedBy: { type: Schema2.Types.ObjectId, ref: "User" },
-        remarks: { type: String, trim: true }
-      }
-    ],
-    isActive: { type: Boolean, default: true }
-  },
-  { timestamps: true }
-);
-var School = mongoose3.model("School", SchoolSchema);
+init_School();
+init_Department();
 
 // server/src/models/Competition.ts
 init_enums();
-import mongoose4, { Schema as Schema3 } from "mongoose";
-var CompetitionSchema = new Schema3(
+import mongoose5, { Schema as Schema4 } from "mongoose";
+var CompetitionSchema = new Schema4(
   {
     title: { type: String, required: true, trim: true },
     code: { type: String, required: true, unique: true, uppercase: true, trim: true, index: true },
@@ -349,21 +405,32 @@ var CompetitionSchema = new Schema3(
       required: true,
       index: true
     },
-    organizingSchool: { type: Schema3.Types.ObjectId, ref: "School", index: true },
-    coOrganizingSchools: [{ type: Schema3.Types.ObjectId, ref: "School" }],
+    organizingSchool: { type: Schema4.Types.ObjectId, ref: "School", index: true },
+    organizingDepartment: { type: Schema4.Types.ObjectId, ref: "Department", index: true },
+    organizingDepartmentName: { type: String, trim: true },
+    coOrganizingSchools: [{ type: Schema4.Types.ObjectId, ref: "School" }],
     isCentralDSW: { type: Boolean, default: false },
-    organizer: { type: Schema3.Types.ObjectId, ref: "User", required: true, index: true },
-    facultyCoordinator: { type: Schema3.Types.ObjectId, ref: "User" },
-    centralCoordinator: { type: Schema3.Types.ObjectId, ref: "User" },
+    organizer: { type: Schema4.Types.ObjectId, ref: "User", required: true, index: true },
+    facultyCoordinator: { type: Schema4.Types.ObjectId, ref: "User" },
+    centralCoordinator: { type: Schema4.Types.ObjectId, ref: "User" },
+    competitionType: { type: String, trim: true },
+    targetAudience: { type: String, trim: true },
+    contactEmail: { type: String, trim: true },
+    contactPhone: { type: String, trim: true },
+    supportingDocuments: [{ type: String }],
     bannerUrl: { type: String },
     objectives: { type: String, trim: true },
     rulesAndRegulations: { type: String, trim: true },
     proposedDate: { type: Date, required: true, index: true },
     startDate: { type: Date },
     endDate: { type: Date },
+    startTime: { type: String, default: "09:00 AM" },
+    endTime: { type: String, default: "05:00 PM" },
     registrationOpenDate: { type: Date },
     registrationCloseDate: { type: Date },
     venue: { type: String, required: true, trim: true },
+    venueType: { type: String, enum: ["CAMPUS", "ONLINE", "HYBRID"], default: "CAMPUS" },
+    onlinePlatformUrl: { type: String, trim: true },
     alternativeVenue: { type: String, trim: true },
     durationMinutes: { type: Number, default: 120 },
     reportingTime: { type: String, default: "09:00 AM" },
@@ -386,7 +453,7 @@ var CompetitionSchema = new Schema3(
     maxRegistrations: { type: Number, default: 100 },
     maxTeams: { type: Number },
     currentRegistrationsCount: { type: Number, default: 0 },
-    eligibleSchools: [{ type: Schema3.Types.ObjectId, ref: "School" }],
+    eligibleSchools: [{ type: Schema4.Types.ObjectId, ref: "School" }],
     eligibleProgrammes: [{ type: String, trim: true }],
     eligibleSemesters: [{ type: Number }],
     eligibilityConditions: { type: String, trim: true },
@@ -413,6 +480,38 @@ var CompetitionSchema = new Schema3(
       otherPrizes: [{ type: String }]
     },
     sponsorshipInfo: { type: String },
+    proposalId: { type: Schema4.Types.ObjectId, ref: "CompetitionProposal", index: true },
+    proposalCode: { type: String, trim: true },
+    creatorRoleAtSubmission: {
+      type: String,
+      enum: ["FACULTY", "HOD", "HOS", "DSW"]
+    },
+    currentApprovalLevel: {
+      type: String,
+      enum: Object.values(ApprovalLevel),
+      default: "NONE" /* NONE */,
+      index: true
+    },
+    returnedFromLevel: {
+      type: String,
+      enum: [...Object.values(ApprovalLevel), null],
+      default: null
+    },
+    hodApproval: {
+      approvedBy: { type: Schema4.Types.ObjectId, ref: "User" },
+      approvedAt: { type: Date },
+      remarks: { type: String, trim: true }
+    },
+    hosApproval: {
+      approvedBy: { type: Schema4.Types.ObjectId, ref: "User" },
+      approvedAt: { type: Date },
+      remarks: { type: String, trim: true }
+    },
+    dswApproval: {
+      approvedBy: { type: Schema4.Types.ObjectId, ref: "User" },
+      approvedAt: { type: Date },
+      remarks: { type: String, trim: true }
+    },
     status: {
       type: String,
       enum: Object.values(CompetitionStatus),
@@ -422,12 +521,14 @@ var CompetitionSchema = new Schema3(
     isPublished: { type: Boolean, default: false, index: true },
     publishedAt: { type: Date },
     submissionRemarks: { type: String, trim: true },
+    hodRemarks: { type: String, trim: true },
+    hosRemarks: { type: String, trim: true },
     dswRemarks: { type: String, trim: true },
     rejectionReason: { type: String, trim: true },
     revisionNotes: { type: String, trim: true },
     approvalAuditTrail: [
       {
-        user: { type: Schema3.Types.ObjectId, ref: "User", required: true },
+        user: { type: Schema4.Types.ObjectId, ref: "User", required: true },
         role: { type: String, required: true },
         action: { type: String, required: true },
         previousStatus: { type: String, required: true },
@@ -439,30 +540,111 @@ var CompetitionSchema = new Schema3(
   },
   { timestamps: true }
 );
-var Competition = mongoose4.model("Competition", CompetitionSchema);
+var Competition = mongoose5.model("Competition", CompetitionSchema);
+
+// server/src/models/CompetitionProposal.ts
+init_enums();
+import mongoose6, { Schema as Schema5 } from "mongoose";
+var CompetitionProposalSchema = new Schema5(
+  {
+    proposalNumber: { type: String, required: true, unique: true, uppercase: true, trim: true, index: true },
+    competitionId: { type: Schema5.Types.ObjectId, ref: "Competition", required: true, unique: true, index: true },
+    creatorId: { type: Schema5.Types.ObjectId, ref: "User", required: true, index: true },
+    creatorRole: { type: String, required: true },
+    schoolId: { type: Schema5.Types.ObjectId, ref: "School", index: true },
+    departmentId: { type: Schema5.Types.ObjectId, ref: "Department", index: true },
+    departmentName: { type: String, trim: true },
+    currentApprovalLevel: {
+      type: String,
+      enum: Object.values(ApprovalLevel),
+      default: "NONE" /* NONE */,
+      index: true
+    },
+    returnedFromLevel: {
+      type: String,
+      enum: [...Object.values(ApprovalLevel), null],
+      default: null
+    },
+    status: {
+      type: String,
+      enum: Object.values(CompetitionStatus),
+      default: "DRAFT" /* DRAFT */,
+      index: true
+    },
+    submittedAt: { type: Date },
+    hodApprovedAt: { type: Date },
+    hosApprovedAt: { type: Date },
+    dswApprovedAt: { type: Date },
+    publishedAt: { type: Date },
+    version: { type: Number, default: 1 }
+  },
+  { timestamps: true }
+);
+var CompetitionProposal = mongoose6.model(
+  "CompetitionProposal",
+  CompetitionProposalSchema
+);
+
+// server/src/models/ApprovalHistory.ts
+init_enums();
+import mongoose7, { Schema as Schema6 } from "mongoose";
+var ApprovalHistorySchema = new Schema6(
+  {
+    competitionId: { type: Schema6.Types.ObjectId, ref: "Competition", required: true, index: true },
+    proposalId: { type: Schema6.Types.ObjectId, ref: "CompetitionProposal", index: true },
+    approverId: { type: Schema6.Types.ObjectId, ref: "User", required: true },
+    approverName: { type: String, required: true, trim: true },
+    approverRole: { type: String, required: true, trim: true },
+    approvalLevel: {
+      type: String,
+      enum: Object.values(ApprovalLevel),
+      default: "NONE" /* NONE */
+    },
+    decision: {
+      type: String,
+      enum: [
+        "DRAFT_CREATED",
+        "SUBMITTED",
+        "RESUBMITTED",
+        "APPROVED",
+        "CHANGES_REQUESTED",
+        "REJECTED",
+        "PUBLISHED",
+        "STATUS_UPDATED"
+      ],
+      required: true
+    },
+    comments: { type: String, trim: true },
+    previousStatus: { type: String, required: true },
+    newStatus: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now, index: true }
+  },
+  { timestamps: true }
+);
+var ApprovalHistory = mongoose7.model("ApprovalHistory", ApprovalHistorySchema);
 
 // server/src/models/CompetitionProposalVersion.ts
-import mongoose5, { Schema as Schema4 } from "mongoose";
-var CompetitionProposalVersionSchema = new Schema4(
+import mongoose8, { Schema as Schema7 } from "mongoose";
+var CompetitionProposalVersionSchema = new Schema7(
   {
-    competitionId: { type: Schema4.Types.ObjectId, ref: "Competition", required: true, index: true },
+    competitionId: { type: Schema7.Types.ObjectId, ref: "Competition", required: true, index: true },
     versionNumber: { type: Number, required: true },
     changesSummary: { type: String, required: true },
-    snapshotData: { type: Schema4.Types.Mixed, required: true },
-    modifiedBy: { type: Schema4.Types.ObjectId, ref: "User", required: true },
+    snapshotData: { type: Schema7.Types.Mixed, required: true },
+    modifiedBy: { type: Schema7.Types.ObjectId, ref: "User", required: true },
     timestamp: { type: Date, default: Date.now }
   },
   { timestamps: true }
 );
-var CompetitionProposalVersion = mongoose5.model(
+var CompetitionProposalVersion = mongoose8.model(
   "CompetitionProposalVersion",
   CompetitionProposalVersionSchema
 );
 
 // server/src/models/Registration.ts
 init_enums();
-import mongoose6, { Schema as Schema5 } from "mongoose";
-var RegistrationSchema = new Schema5(
+import mongoose9, { Schema as Schema8 } from "mongoose";
+var RegistrationSchema = new Schema8(
   {
     registrationNumber: {
       type: String,
@@ -473,7 +655,7 @@ var RegistrationSchema = new Schema5(
       index: true
     },
     competitionId: {
-      type: Schema5.Types.ObjectId,
+      type: Schema8.Types.ObjectId,
       ref: "Competition",
       required: true,
       index: true
@@ -484,15 +666,28 @@ var RegistrationSchema = new Schema5(
       default: "INDIVIDUAL"
     },
     userId: {
-      type: Schema5.Types.ObjectId,
+      type: Schema8.Types.ObjectId,
       ref: "User",
       required: true,
       index: true
     },
     school: {
-      type: Schema5.Types.ObjectId,
+      type: Schema8.Types.ObjectId,
       ref: "School",
       index: true
+    },
+    departmentId: {
+      type: Schema8.Types.ObjectId,
+      ref: "Department",
+      index: true
+    },
+    departmentName: {
+      type: String,
+      trim: true
+    },
+    teamId: {
+      type: Schema8.Types.ObjectId,
+      ref: "Team"
     },
     teamName: {
       type: String,
@@ -523,11 +718,11 @@ var RegistrationSchema = new Schema5(
       type: Date
     },
     checkedInBy: {
-      type: Schema5.Types.ObjectId,
+      type: Schema8.Types.ObjectId,
       ref: "User"
     },
     customFieldResponses: {
-      type: Schema5.Types.Mixed
+      type: Schema8.Types.Mixed
     },
     remarks: {
       type: String
@@ -536,16 +731,43 @@ var RegistrationSchema = new Schema5(
   { timestamps: true }
 );
 RegistrationSchema.index({ competitionId: 1, userId: 1 }, { unique: true });
-var Registration = mongoose6.model("Registration", RegistrationSchema);
+var Registration = mongoose9.model("Registration", RegistrationSchema);
+
+// server/src/models/Team.ts
+import mongoose10, { Schema as Schema9 } from "mongoose";
+var TeamSchema = new Schema9(
+  {
+    competitionId: { type: Schema9.Types.ObjectId, ref: "Competition", required: true, index: true },
+    registrationId: { type: Schema9.Types.ObjectId, ref: "Registration", index: true },
+    teamName: { type: String, required: true, trim: true },
+    leaderId: { type: Schema9.Types.ObjectId, ref: "User", required: true, index: true },
+    members: [
+      {
+        name: { type: String, required: true },
+        email: { type: String, required: true },
+        studentId: { type: String },
+        phone: { type: String },
+        school: { type: String },
+        programme: { type: String },
+        semester: { type: Number }
+      }
+    ],
+    teamSize: { type: Number, required: true, min: 1 },
+    status: { type: String, enum: ["ACTIVE", "CANCELLED"], default: "ACTIVE" }
+  },
+  { timestamps: true }
+);
+TeamSchema.index({ competitionId: 1, teamName: 1 }, { unique: true });
+var Team = mongoose10.model("Team", TeamSchema);
 
 // server/src/models/FacultyDuty.ts
 init_enums();
-import mongoose7, { Schema as Schema6 } from "mongoose";
-var FacultyDutySchema = new Schema6(
+import mongoose11, { Schema as Schema10 } from "mongoose";
+var FacultyDutySchema = new Schema10(
   {
-    competitionId: { type: Schema6.Types.ObjectId, ref: "Competition", required: true, index: true },
-    facultyId: { type: Schema6.Types.ObjectId, ref: "User", required: true, index: true },
-    assignedBy: { type: Schema6.Types.ObjectId, ref: "User", required: true },
+    competitionId: { type: Schema10.Types.ObjectId, ref: "Competition", required: true, index: true },
+    facultyId: { type: Schema10.Types.ObjectId, ref: "User", required: true, index: true },
+    assignedBy: { type: Schema10.Types.ObjectId, ref: "User", required: true },
     dutyTitle: { type: String, required: true, trim: true },
     dutyCategory: {
       type: String,
@@ -581,7 +803,7 @@ var FacultyDutySchema = new Schema6(
     },
     supervisorRemarks: { type: String },
     verifiedAt: { type: Date },
-    verifiedBy: { type: Schema6.Types.ObjectId, ref: "User" },
+    verifiedBy: { type: Schema10.Types.ObjectId, ref: "User" },
     reassignmentRequest: {
       reason: { type: String },
       requestedAt: { type: Date }
@@ -589,15 +811,15 @@ var FacultyDutySchema = new Schema6(
   },
   { timestamps: true }
 );
-var FacultyDuty = mongoose7.model("FacultyDuty", FacultyDutySchema);
+var FacultyDuty = mongoose11.model("FacultyDuty", FacultyDutySchema);
 
 // server/src/models/CulturalCoordinatorAssignment.ts
-import mongoose8, { Schema as Schema7 } from "mongoose";
-var CulturalCoordinatorAssignmentSchema = new Schema7(
+import mongoose12, { Schema as Schema11 } from "mongoose";
+var CulturalCoordinatorAssignmentSchema = new Schema11(
   {
-    schoolId: { type: Schema7.Types.ObjectId, ref: "School", required: true, index: true },
-    coordinatorId: { type: Schema7.Types.ObjectId, ref: "User", required: true, index: true },
-    appointedBy: { type: Schema7.Types.ObjectId, ref: "User", required: true },
+    schoolId: { type: Schema11.Types.ObjectId, ref: "School", required: true, index: true },
+    coordinatorId: { type: Schema11.Types.ObjectId, ref: "User", required: true, index: true },
+    appointedBy: { type: Schema11.Types.ObjectId, ref: "User", required: true },
     termStart: { type: Date, default: Date.now },
     termEnd: { type: Date },
     isActive: { type: Boolean, default: true, index: true },
@@ -606,16 +828,16 @@ var CulturalCoordinatorAssignmentSchema = new Schema7(
   },
   { timestamps: true }
 );
-var CulturalCoordinatorAssignment = mongoose8.model(
+var CulturalCoordinatorAssignment = mongoose12.model(
   "CulturalCoordinatorAssignment",
   CulturalCoordinatorAssignmentSchema
 );
 
 // server/src/models/JudgingRubric.ts
-import mongoose9, { Schema as Schema8 } from "mongoose";
-var JudgingRubricSchema = new Schema8(
+import mongoose13, { Schema as Schema12 } from "mongoose";
+var JudgingRubricSchema = new Schema12(
   {
-    competitionId: { type: Schema8.Types.ObjectId, ref: "Competition", required: true, unique: true, index: true },
+    competitionId: { type: Schema12.Types.ObjectId, ref: "Competition", required: true, unique: true, index: true },
     criteria: [
       {
         name: { type: String, required: true },
@@ -629,15 +851,15 @@ var JudgingRubricSchema = new Schema8(
   },
   { timestamps: true }
 );
-var JudgingRubric = mongoose9.model("JudgingRubric", JudgingRubricSchema);
+var JudgingRubric = mongoose13.model("JudgingRubric", JudgingRubricSchema);
 
 // server/src/models/Score.ts
-import mongoose10, { Schema as Schema9 } from "mongoose";
-var ScoreSchema = new Schema9(
+import mongoose14, { Schema as Schema13 } from "mongoose";
+var ScoreSchema = new Schema13(
   {
-    competitionId: { type: Schema9.Types.ObjectId, ref: "Competition", required: true, index: true },
-    judgeId: { type: Schema9.Types.ObjectId, ref: "User", required: true, index: true },
-    registrationId: { type: Schema9.Types.ObjectId, ref: "Registration", required: true, index: true },
+    competitionId: { type: Schema13.Types.ObjectId, ref: "Competition", required: true, index: true },
+    judgeId: { type: Schema13.Types.ObjectId, ref: "User", required: true, index: true },
+    registrationId: { type: Schema13.Types.ObjectId, ref: "Registration", required: true, index: true },
     roundNumber: { type: Number, default: 1 },
     criteriaScores: [
       {
@@ -654,17 +876,17 @@ var ScoreSchema = new Schema9(
   { timestamps: true }
 );
 ScoreSchema.index({ competitionId: 1, judgeId: 1, registrationId: 1, roundNumber: 1 }, { unique: true });
-var Score = mongoose10.model("Score", ScoreSchema);
+var Score = mongoose14.model("Score", ScoreSchema);
 
 // server/src/models/CompetitionResult.ts
 init_enums();
-import mongoose11, { Schema as Schema10 } from "mongoose";
-var CompetitionResultSchema = new Schema10(
+import mongoose15, { Schema as Schema14 } from "mongoose";
+var CompetitionResultSchema = new Schema14(
   {
-    competitionId: { type: Schema10.Types.ObjectId, ref: "Competition", required: true, index: true },
-    registrationId: { type: Schema10.Types.ObjectId, ref: "Registration", required: true, index: true },
+    competitionId: { type: Schema14.Types.ObjectId, ref: "Competition", required: true, index: true },
+    registrationId: { type: Schema14.Types.ObjectId, ref: "Registration", required: true, index: true },
     participantName: { type: String, required: true },
-    school: { type: Schema10.Types.ObjectId, ref: "School" },
+    school: { type: Schema14.Types.ObjectId, ref: "School" },
     rank: { type: Number, required: true },
     category: {
       type: String,
@@ -678,10 +900,10 @@ var CompetitionResultSchema = new Schema10(
     isApprovedByDSW: { type: Boolean, default: false },
     isPublished: { type: Boolean, default: false, index: true },
     publishedAt: { type: Date },
-    publishedBy: { type: Schema10.Types.ObjectId, ref: "User" },
+    publishedBy: { type: Schema14.Types.ObjectId, ref: "User" },
     history: [
       {
-        modifiedBy: { type: Schema10.Types.ObjectId, ref: "User", required: true },
+        modifiedBy: { type: Schema14.Types.ObjectId, ref: "User", required: true },
         modifiedAt: { type: Date, default: Date.now },
         reason: { type: String, required: true },
         previousRank: { type: Number },
@@ -692,12 +914,12 @@ var CompetitionResultSchema = new Schema10(
   { timestamps: true }
 );
 CompetitionResultSchema.index({ competitionId: 1, registrationId: 1 }, { unique: true });
-var CompetitionResult = mongoose11.model("CompetitionResult", CompetitionResultSchema);
+var CompetitionResult = mongoose15.model("CompetitionResult", CompetitionResultSchema);
 
 // server/src/models/Certificate.ts
 init_enums();
-import mongoose12, { Schema as Schema11 } from "mongoose";
-var CertificateSchema = new Schema11(
+import mongoose16, { Schema as Schema15 } from "mongoose";
+var CertificateSchema = new Schema15(
   {
     certificateNumber: {
       type: String,
@@ -715,8 +937,8 @@ var CertificateSchema = new Schema11(
       trim: true,
       index: true
     },
-    competitionId: { type: Schema11.Types.ObjectId, ref: "Competition", required: true, index: true },
-    recipientId: { type: Schema11.Types.ObjectId, ref: "User", required: true, index: true },
+    competitionId: { type: Schema15.Types.ObjectId, ref: "Competition", required: true, index: true },
+    recipientId: { type: Schema15.Types.ObjectId, ref: "User", required: true, index: true },
     recipientName: { type: String, required: true, trim: true },
     recipientRole: { type: String, required: true, trim: true },
     schoolName: { type: String, trim: true },
@@ -742,13 +964,13 @@ var CertificateSchema = new Schema11(
   },
   { timestamps: true }
 );
-var Certificate = mongoose12.model("Certificate", CertificateSchema);
+var Certificate = mongoose16.model("Certificate", CertificateSchema);
 
 // server/src/models/Notification.ts
-import mongoose13, { Schema as Schema12 } from "mongoose";
-var NotificationSchema = new Schema12(
+import mongoose17, { Schema as Schema16 } from "mongoose";
+var NotificationSchema = new Schema16(
   {
-    recipient: { type: Schema12.Types.ObjectId, ref: "User", required: true, index: true },
+    recipient: { type: Schema16.Types.ObjectId, ref: "User", required: true, index: true },
     title: { type: String, required: true, trim: true },
     message: { type: String, required: true, trim: true },
     type: {
@@ -757,46 +979,46 @@ var NotificationSchema = new Schema12(
       default: "INFO"
     },
     actionUrl: { type: String, trim: true },
-    metadata: { type: Schema12.Types.Mixed },
+    metadata: { type: Schema16.Types.Mixed },
     isRead: { type: Boolean, default: false, index: true }
   },
   { timestamps: true }
 );
-var Notification = mongoose13.model("Notification", NotificationSchema);
+var Notification = mongoose17.model("Notification", NotificationSchema);
 
 // server/src/models/AuditLog.ts
-import mongoose14, { Schema as Schema13 } from "mongoose";
-var AuditLogSchema = new Schema13(
+import mongoose18, { Schema as Schema17 } from "mongoose";
+var AuditLogSchema = new Schema17(
   {
-    user: { type: Schema13.Types.ObjectId, ref: "User" },
+    user: { type: Schema17.Types.ObjectId, ref: "User" },
     userName: { type: String },
     role: { type: String, required: true },
     action: { type: String, required: true, index: true },
     resourceType: { type: String, required: true, index: true },
     resourceId: { type: String, index: true },
-    previousState: { type: Schema13.Types.Mixed },
-    newState: { type: Schema13.Types.Mixed },
+    previousState: { type: Schema17.Types.Mixed },
+    newState: { type: Schema17.Types.Mixed },
     remarks: { type: String },
     ipAddress: { type: String },
     userAgent: { type: String }
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );
-var AuditLog = mongoose14.model("AuditLog", AuditLogSchema);
+var AuditLog = mongoose18.model("AuditLog", AuditLogSchema);
 
 // server/src/models/SystemSetting.ts
-import mongoose15, { Schema as Schema14 } from "mongoose";
-var SystemSettingSchema = new Schema14(
+import mongoose19, { Schema as Schema18 } from "mongoose";
+var SystemSettingSchema = new Schema18(
   {
     key: { type: String, required: true, unique: true, index: true },
-    value: { type: Schema14.Types.Mixed, required: true },
+    value: { type: Schema18.Types.Mixed, required: true },
     category: { type: String, default: "GENERAL" },
     description: { type: String },
-    updatedBy: { type: Schema14.Types.ObjectId, ref: "User" }
+    updatedBy: { type: Schema18.Types.ObjectId, ref: "User" }
   },
   { timestamps: true }
 );
-var SystemSetting = mongoose15.model("SystemSetting", SystemSettingSchema);
+var SystemSetting = mongoose19.model("SystemSetting", SystemSettingSchema);
 
 // server/src/scripts/seed.ts
 init_enums();
@@ -1706,8 +1928,351 @@ if (process.argv[1]?.endsWith("seed.ts") || process.argv[1]?.endsWith("seed.js")
   })();
 }
 
+// server/src/services/hierarchyService.ts
+init_enums();
+init_User();
+init_School();
+init_Department();
+
+// server/src/middleware/rbac.ts
+init_enums();
+var isDswRole = (roles = []) => roles.includes("SUPER_ADMIN" /* SUPER_ADMIN */) || roles.includes("DSW_ADMIN" /* DSW_ADMIN */);
+var isHosRole = (roles = []) => roles.includes("HOS" /* HOS */) || roles.includes("SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */);
+var isHodRole = (roles = []) => roles.includes("HOD" /* HOD */);
+var isFacultyOrCoordRole = (roles = []) => roles.includes("FACULTY" /* FACULTY */) || roles.includes("CULTURAL_COORDINATOR" /* CULTURAL_COORDINATOR */) || roles.includes("COMPETITION_ORGANIZER" /* COMPETITION_ORGANIZER */);
+var getUserHierarchyOrigin = (roles = []) => {
+  if (isDswRole(roles)) return "DSW";
+  if (isHosRole(roles)) return "HOS";
+  if (isHodRole(roles)) return "HOD";
+  if (isFacultyOrCoordRole(roles)) return "FACULTY";
+  return null;
+};
+var requireRoles = (...allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.user || !req.userRoles) {
+      res.status(401).json({ success: false, message: "Unauthorized. Authentication required." });
+      return;
+    }
+    if (isDswRole(req.userRoles)) {
+      return next();
+    }
+    const hasAllowedRole = req.userRoles.some((role) => allowedRoles.includes(role));
+    if (!hasAllowedRole) {
+      res.status(403).json({
+        success: false,
+        message: `Forbidden. Requires one of roles: [${allowedRoles.join(", ")}]`
+      });
+      return;
+    }
+    next();
+  };
+};
+var requireExactRoles = (...allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.user || !req.userRoles) {
+      res.status(401).json({ success: false, message: "Unauthorized. Authentication required." });
+      return;
+    }
+    const hasAllowedRole = req.userRoles.some((role) => allowedRoles.includes(role));
+    if (!hasAllowedRole) {
+      res.status(403).json({
+        success: false,
+        message: `Forbidden. Requires one of roles: [${allowedRoles.join(", ")}]`
+      });
+      return;
+    }
+    next();
+  };
+};
+
+// server/src/services/hierarchyService.ts
+function computeEffectiveStatus(comp) {
+  if (!comp.isPublished) {
+    return comp.status;
+  }
+  if ([
+    "COMPLETED" /* COMPLETED */,
+    "CANCELLED" /* CANCELLED */,
+    "POSTPONED" /* POSTPONED */,
+    "ARCHIVED" /* ARCHIVED */,
+    "IN_PROGRESS" /* IN_PROGRESS */
+  ].includes(comp.status)) {
+    return comp.status;
+  }
+  const now = /* @__PURE__ */ new Date();
+  if (comp.registrationOpenDate && now < new Date(comp.registrationOpenDate)) {
+    return "PUBLISHED" /* PUBLISHED */;
+  }
+  if (comp.registrationCloseDate && now > new Date(comp.registrationCloseDate)) {
+    return "REGISTRATION_CLOSED" /* REGISTRATION_CLOSED */;
+  }
+  if (comp.maxRegistrations && (comp.currentRegistrationsCount || 0) >= comp.maxRegistrations) {
+    return "REGISTRATION_CLOSED" /* REGISTRATION_CLOSED */;
+  }
+  return "REGISTRATION_OPEN" /* REGISTRATION_OPEN */;
+}
+function getInitialSubmissionRoute(roles) {
+  const origin = getUserHierarchyOrigin(roles) || "FACULTY";
+  if (origin === "DSW") {
+    return {
+      origin: "DSW",
+      status: "APPROVED_BY_DSW" /* APPROVED_BY_DSW */,
+      level: "NONE" /* NONE */
+    };
+  }
+  if (origin === "HOS") {
+    return {
+      origin: "HOS",
+      status: "PENDING_DSW_APPROVAL" /* PENDING_DSW_APPROVAL */,
+      level: "DSW" /* DSW */
+    };
+  }
+  if (origin === "HOD") {
+    return {
+      origin: "HOD",
+      status: "PENDING_HOS_APPROVAL" /* PENDING_HOS_APPROVAL */,
+      level: "HOS" /* HOS */
+    };
+  }
+  return {
+    origin: "FACULTY",
+    status: "PENDING_HOD_APPROVAL" /* PENDING_HOD_APPROVAL */,
+    level: "HOD" /* HOD */
+  };
+}
+async function recordApprovalTransition(params) {
+  const {
+    competition,
+    approverId,
+    approverName,
+    approverRole,
+    approvalLevel,
+    decision,
+    previousStatus,
+    newStatus,
+    comments,
+    actionLabel,
+    currentApprovalLevel,
+    returnedFromLevel
+  } = params;
+  const now = /* @__PURE__ */ new Date();
+  competition.approvalAuditTrail.push({
+    user: approverId,
+    role: approverRole,
+    action: actionLabel,
+    previousStatus,
+    newStatus,
+    remarks: comments,
+    timestamp: now
+  });
+  let proposal = await CompetitionProposal.findOne({ competitionId: competition._id });
+  if (!proposal) {
+    const proposalNumber = competition.proposalCode || `PROP-${(/* @__PURE__ */ new Date()).getFullYear()}-${competition._id.toString().slice(-6).toUpperCase()}`;
+    proposal = await CompetitionProposal.create({
+      proposalNumber,
+      competitionId: competition._id,
+      creatorId: competition.organizer,
+      creatorRole: competition.creatorRoleAtSubmission || "FACULTY",
+      schoolId: competition.organizingSchool,
+      departmentId: competition.organizingDepartment,
+      departmentName: competition.organizingDepartmentName,
+      currentApprovalLevel,
+      returnedFromLevel: returnedFromLevel ?? null,
+      status: newStatus,
+      submittedAt: decision === "SUBMITTED" ? now : void 0,
+      publishedAt: decision === "PUBLISHED" ? now : void 0
+    });
+    competition.proposalId = proposal._id;
+    competition.proposalCode = proposal.proposalNumber;
+  } else {
+    proposal.currentApprovalLevel = currentApprovalLevel;
+    proposal.returnedFromLevel = returnedFromLevel !== void 0 ? returnedFromLevel : proposal.returnedFromLevel;
+    proposal.status = newStatus;
+    if (decision === "SUBMITTED" && !proposal.submittedAt) proposal.submittedAt = now;
+    if (decision === "APPROVED" && approvalLevel === "HOD" /* HOD */) proposal.hodApprovedAt = now;
+    if (decision === "APPROVED" && approvalLevel === "HOS" /* HOS */) proposal.hosApprovedAt = now;
+    if (decision === "APPROVED" && approvalLevel === "DSW" /* DSW */) proposal.dswApprovedAt = now;
+    if (decision === "PUBLISHED") proposal.publishedAt = now;
+    await proposal.save();
+  }
+  await ApprovalHistory.create({
+    competitionId: competition._id,
+    proposalId: proposal._id,
+    approverId,
+    approverName,
+    approverRole,
+    approvalLevel,
+    decision,
+    comments,
+    previousStatus,
+    newStatus,
+    timestamp: now
+  });
+}
+var hierarchySynced = false;
+async function ensureOrgHierarchySynced() {
+  if (hierarchySynced) return;
+  try {
+    const schools = await School.find({ isActive: true });
+    if (schools.length === 0) {
+      hierarchySynced = true;
+      return;
+    }
+    const defaultPassword = "ctu@12345";
+    for (const school of schools) {
+      for (let i = 0; i < (school.departments || []).length; i++) {
+        const cleanName = school.departments[i].trim();
+        if (!cleanName) continue;
+        const existingByName = await Department.findOne({ school: school._id, name: cleanName });
+        if (!existingByName) {
+          const words = cleanName.split(/[\s&]+/).filter(Boolean);
+          let candidateCode = words.length >= 2 ? words.map((w) => w[0]).join("").toUpperCase().slice(0, 8) : cleanName.replace(/[^A-Za-z0-9]/g, "").slice(0, 6).toUpperCase() || `DEPT${i + 1}`;
+          let suffix = 2;
+          while (await Department.findOne({ school: school._id, code: candidateCode })) {
+            candidateCode = `${cleanName.replace(/[^A-Za-z0-9]/g, "").slice(0, 5).toUpperCase()}${suffix}`;
+            suffix++;
+          }
+          await Department.create({
+            name: cleanName,
+            code: candidateCode,
+            school: school._id,
+            isActive: true
+          });
+        }
+      }
+      const coord = await User.findOne({
+        school: school._id,
+        roles: { $in: ["HOS" /* HOS */, "SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */] },
+        isActive: true
+      });
+      if (coord) {
+        if (!coord.roles.includes("HOS" /* HOS */)) {
+          coord.roles.push("HOS" /* HOS */);
+          await coord.save();
+        }
+        if (!school.hos) {
+          school.hos = coord._id;
+          await school.save();
+        }
+      }
+    }
+    const soet = schools.find((s) => s.code === "SOET");
+    const sms = schools.find((s) => s.code === "SMS");
+    if (soet) {
+      const cseDept = await Department.findOne({
+        school: soet._id,
+        name: "Computer Science & Engineering"
+      });
+      if (cseDept) {
+        let hodCse = await User.findOne({ email: "hod.cse@ctuniversity.in" });
+        if (!hodCse) {
+          hodCse = await User.create({
+            name: "Dr. Prabhpreet Singh (HOD CSE)",
+            email: "hod.cse@ctuniversity.in",
+            password: defaultPassword,
+            roles: ["HOD" /* HOD */, "FACULTY" /* FACULTY */],
+            school: soet._id,
+            departmentId: cseDept._id,
+            department: cseDept.name,
+            designation: "Professor & Head of Department (CSE)",
+            employeeId: "CTU-HOD-0101",
+            phone: "+91 98141 11101",
+            avatarUrl: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80",
+            isActive: true
+          });
+        }
+        if (!cseDept.hod) {
+          cseDept.hod = hodCse._id;
+          await cseDept.save();
+        }
+      }
+      const aiDept = await Department.findOne({
+        school: soet._id,
+        name: "Artificial Intelligence & Data Science"
+      });
+      if (aiDept && !aiDept.hod) {
+        let hodAi = await User.findOne({ email: "hod.ai@ctuniversity.in" });
+        if (!hodAi) {
+          hodAi = await User.create({
+            name: "Dr. Harjot Kaur (HOD AI & DS)",
+            email: "hod.ai@ctuniversity.in",
+            password: defaultPassword,
+            roles: ["HOD" /* HOD */, "FACULTY" /* FACULTY */],
+            school: soet._id,
+            departmentId: aiDept._id,
+            department: aiDept.name,
+            designation: "Professor & Head of Department (AI & DS)",
+            employeeId: "CTU-HOD-0102",
+            phone: "+91 98141 11102",
+            isActive: true
+          });
+        }
+        aiDept.hod = hodAi._id;
+        await aiDept.save();
+      }
+    }
+    if (sms) {
+      const mktDept = await Department.findOne({
+        school: sms._id,
+        name: "Marketing & Finance"
+      });
+      if (mktDept && !mktDept.hod) {
+        let hodSms = await User.findOne({ email: "hod.sms@ctuniversity.in" });
+        if (!hodSms) {
+          hodSms = await User.create({
+            name: "Dr. Gagandeep Singh (HOD Marketing)",
+            email: "hod.sms@ctuniversity.in",
+            password: defaultPassword,
+            roles: ["HOD" /* HOD */, "FACULTY" /* FACULTY */],
+            school: sms._id,
+            departmentId: mktDept._id,
+            department: mktDept.name,
+            designation: "Professor & Head of Department (Marketing & Finance)",
+            employeeId: "CTU-HOD-0201",
+            phone: "+91 98141 11201",
+            isActive: true
+          });
+        }
+        mktDept.hod = hodSms._id;
+        await mktDept.save();
+      }
+    }
+    const usersMissingDeptId = await User.find({
+      school: { $exists: true, $ne: null },
+      department: { $exists: true, $ne: "" },
+      departmentId: { $exists: false }
+    });
+    for (const u of usersMissingDeptId) {
+      const matchingDept = await Department.findOne({
+        school: u.school,
+        name: u.department
+      });
+      if (matchingDept) {
+        u.departmentId = matchingDept._id;
+        await u.save();
+      }
+    }
+    await Competition.updateMany(
+      {
+        status: { $in: ["SUBMITTED" /* SUBMITTED */, "UNDER_REVIEW" /* UNDER_REVIEW */, "RESUBMITTED" /* RESUBMITTED */] },
+        currentApprovalLevel: "NONE" /* NONE */
+      },
+      {
+        $set: {
+          currentApprovalLevel: "DSW" /* DSW */,
+          status: "PENDING_DSW_APPROVAL" /* PENDING_DSW_APPROVAL */
+        }
+      }
+    );
+    hierarchySynced = true;
+  } catch (err) {
+    console.error("Failed to sync org hierarchy:", err);
+  }
+}
+
 // server/src/routes/authRoutes.ts
 init_User();
+init_School();
 import { Router } from "express";
 import jwt2 from "jsonwebtoken";
 
@@ -1736,16 +2301,33 @@ var authenticate = async (req, res, next) => {
     res.status(401).json({ success: false, message: "Invalid or expired authentication token." });
   }
 };
+var authenticateOptional = async (req, _res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
+      const decoded = jwt.verify(token, ENV.JWT_SECRET);
+      const user = await User.findById(decoded.id).select("-password");
+      if (user && user.isActive) {
+        req.user = user;
+        req.userId = user._id.toString();
+        req.userRoles = user.roles;
+      }
+    }
+  } catch {
+  }
+  next();
+};
 
 // server/src/routes/authRoutes.ts
 init_enums();
 
 // server/src/services/auditService.ts
-import mongoose16 from "mongoose";
+import mongoose20 from "mongoose";
 var logAudit = async (options) => {
   try {
     await AuditLog.create({
-      user: options.user ? new mongoose16.Types.ObjectId(options.user) : void 0,
+      user: options.user ? new mongoose20.Types.ObjectId(options.user) : void 0,
       userName: options.userName,
       role: options.role,
       action: options.action,
@@ -1784,7 +2366,7 @@ router.post("/login", async (req, res) => {
       res.status(400).json({ success: false, message: "Email and password are required." });
       return;
     }
-    const user = await User.findOne({ email: email.toLowerCase().trim() }).populate("school");
+    const user = await User.findOne({ email: email.toLowerCase().trim() }).populate("school").populate("departmentId");
     if (!user) {
       res.status(401).json({ success: false, message: "Invalid email or password." });
       return;
@@ -1818,6 +2400,7 @@ router.post("/login", async (req, res) => {
           email: user.email,
           roles: user.roles,
           school: user.school,
+          departmentId: user.departmentId,
           department: user.department,
           programme: user.programme,
           semester: user.semester,
@@ -1889,7 +2472,7 @@ router.post("/register", async (req, res) => {
 });
 router.get("/me", authenticate, async (req, res) => {
   try {
-    const user = await User.findById(req.userId).populate("school").select("-password");
+    const user = await User.findById(req.userId).populate("school").populate("departmentId").select("-password");
     if (!user) {
       res.status(404).json({ success: false, message: "User not found." });
       return;
@@ -1906,7 +2489,10 @@ router.post("/switch-demo-role", async (req, res) => {
       res.status(400).json({ success: false, message: "Valid role is required." });
       return;
     }
-    const user = await User.findOne({ roles: role, isActive: true }).populate("school");
+    let user = await User.findOne({ "roles.0": role, isActive: true }).populate("school").populate("departmentId");
+    if (!user) {
+      user = await User.findOne({ roles: role, isActive: true }).populate("school").populate("departmentId");
+    }
     if (!user) {
       res.status(404).json({ success: false, message: `No demo user found for role: ${role}` });
       return;
@@ -1921,6 +2507,7 @@ router.post("/switch-demo-role", async (req, res) => {
           email: user.email,
           roles: user.roles,
           school: user.school,
+          departmentId: user.departmentId,
           department: user.department,
           programme: user.programme,
           semester: user.semester,
@@ -1939,34 +2526,9 @@ router.post("/switch-demo-role", async (req, res) => {
 var authRoutes_default = router;
 
 // server/src/routes/schoolRoutes.ts
-import { Router as Router2 } from "express";
+init_School();
 init_User();
-
-// server/src/middleware/rbac.ts
-init_enums();
-var requireRoles = (...allowedRoles) => {
-  return (req, res, next) => {
-    if (!req.user || !req.userRoles) {
-      res.status(401).json({ success: false, message: "Unauthorized. Authentication required." });
-      return;
-    }
-    const hasGlobalAccess = req.userRoles.includes("SUPER_ADMIN" /* SUPER_ADMIN */) || req.userRoles.includes("DSW_ADMIN" /* DSW_ADMIN */);
-    if (hasGlobalAccess) {
-      return next();
-    }
-    const hasAllowedRole = req.userRoles.some((role) => allowedRoles.includes(role));
-    if (!hasAllowedRole) {
-      res.status(403).json({
-        success: false,
-        message: `Forbidden. Requires one of roles: [${allowedRoles.join(", ")}]`
-      });
-      return;
-    }
-    next();
-  };
-};
-
-// server/src/routes/schoolRoutes.ts
+import { Router as Router2 } from "express";
 init_enums();
 var router2 = Router2();
 router2.get("/", async (req, res) => {
@@ -2115,17 +2677,36 @@ router2.put(
 );
 var schoolRoutes_default = router2;
 
-// server/src/routes/coordinatorRoutes.ts
+// server/src/routes/departmentRoutes.ts
+init_Department();
 import { Router as Router3 } from "express";
+var router3 = Router3();
+router3.get("/", async (req, res) => {
+  try {
+    const filter = { isActive: true };
+    if (req.query.schoolId && req.query.schoolId !== "undefined") {
+      filter.school = req.query.schoolId;
+    }
+    const departments = await Department.find(filter).populate("school", "name code").populate("hod", "name email designation").sort({ name: 1 });
+    res.json({ success: true, data: departments });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+var departmentRoutes_default = router3;
+
+// server/src/routes/coordinatorRoutes.ts
+init_School();
 init_User();
+import { Router as Router4 } from "express";
 init_enums();
 
 // server/src/services/notificationService.ts
-import mongoose17 from "mongoose";
+import mongoose21 from "mongoose";
 var sendNotification = async (options) => {
   try {
     await Notification.create({
-      recipient: new mongoose17.Types.ObjectId(options.recipient),
+      recipient: new mongoose21.Types.ObjectId(options.recipient),
       title: options.title,
       message: options.message,
       type: options.type || "INFO",
@@ -2137,29 +2718,93 @@ var sendNotification = async (options) => {
     console.error("Failed to create notification:", error);
   }
 };
-var broadcastToRoles = async (roles, title, message, actionUrl) => {
+var broadcastToUsers = async (recipientIds, title, message, type = "INFO", actionUrl, metadata) => {
+  try {
+    const uniqueIds = Array.from(
+      new Set(recipientIds.filter(Boolean).map((id) => id.toString()))
+    );
+    if (uniqueIds.length === 0) return;
+    const docs = uniqueIds.map((id) => ({
+      recipient: new mongoose21.Types.ObjectId(id),
+      title,
+      message,
+      type,
+      actionUrl,
+      metadata,
+      isRead: false
+    }));
+    await Notification.insertMany(docs);
+  } catch (error) {
+    console.error("Failed to broadcast notifications to users:", error);
+  }
+};
+var broadcastToRoles = async (roles, title, message, actionUrl, type = "INFO", metadata) => {
   try {
     const { User: User2 } = await Promise.resolve().then(() => (init_User(), User_exports));
     const users = await User2.find({ roles: { $in: roles }, isActive: true }).select("_id");
-    const docs = users.map((u) => ({
-      recipient: u._id,
+    await broadcastToUsers(
+      users.map((u) => u._id),
       title,
       message,
-      type: "INFO",
+      type,
       actionUrl,
-      isRead: false
-    }));
-    if (docs.length > 0) {
-      await Notification.insertMany(docs);
-    }
+      metadata
+    );
   } catch (error) {
     console.error("Failed to broadcast notifications:", error);
   }
 };
+var notifyDepartmentHods = async (departmentId, schoolId, title, message, actionUrl, type = "INFO") => {
+  try {
+    const { User: User2 } = await Promise.resolve().then(() => (init_User(), User_exports));
+    const { Department: Department2 } = await Promise.resolve().then(() => (init_Department(), Department_exports));
+    const recipientIds = [];
+    if (departmentId) {
+      const dept = await Department2.findById(departmentId).select("hod");
+      if (dept?.hod) recipientIds.push(dept.hod.toString());
+      const deptHods = await User2.find({
+        departmentId,
+        roles: "HOD",
+        isActive: true
+      }).select("_id");
+      deptHods.forEach((u) => recipientIds.push(u._id.toString()));
+    }
+    if (recipientIds.length === 0 && schoolId) {
+      const fallbackHods = await User2.find({
+        school: schoolId,
+        roles: "HOD",
+        isActive: true
+      }).select("_id");
+      fallbackHods.forEach((u) => recipientIds.push(u._id.toString()));
+    }
+    await broadcastToUsers(recipientIds, title, message, type, actionUrl);
+  } catch (error) {
+    console.error("Failed to notify department HODs:", error);
+  }
+};
+var notifySchoolHos = async (schoolId, title, message, actionUrl, type = "INFO") => {
+  try {
+    if (!schoolId) return;
+    const { User: User2 } = await Promise.resolve().then(() => (init_User(), User_exports));
+    const { School: School2 } = await Promise.resolve().then(() => (init_School(), School_exports));
+    const recipientIds = [];
+    const school = await School2.findById(schoolId).select("hos");
+    if (school?.hos) recipientIds.push(school.hos.toString());
+    const hosUsers = await User2.find({
+      school: schoolId,
+      roles: { $in: ["HOS", "SCHOOL_COORDINATOR"] },
+      isActive: true
+    }).select("_id");
+    hosUsers.forEach((u) => recipientIds.push(u._id.toString()));
+    await broadcastToUsers(recipientIds, title, message, type, actionUrl);
+  } catch (error) {
+    console.error("Failed to notify school HOS:", error);
+  }
+};
 
 // server/src/routes/coordinatorRoutes.ts
-var router3 = Router3();
-router3.get(
+var router4 = Router4();
+router4.get(
   "/",
   authenticate,
   requireRoles("DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */, "SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */, "CULTURAL_COORDINATOR" /* CULTURAL_COORDINATOR */),
@@ -2179,7 +2824,7 @@ router3.get(
     }
   }
 );
-router3.post(
+router4.post(
   "/assign",
   authenticate,
   requireRoles("DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */),
@@ -2268,7 +2913,7 @@ router3.post(
     }
   }
 );
-router3.post(
+router4.post(
   "/remove",
   authenticate,
   requireRoles("DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */),
@@ -2310,7 +2955,7 @@ router3.post(
     }
   }
 );
-router3.get(
+router4.get(
   "/my-overview",
   authenticate,
   requireRoles("CULTURAL_COORDINATOR" /* CULTURAL_COORDINATOR */, "SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */, "DSW_ADMIN" /* DSW_ADMIN */),
@@ -2344,90 +2989,389 @@ router3.get(
     }
   }
 );
-var coordinatorRoutes_default = router3;
+var coordinatorRoutes_default = router4;
 
 // server/src/routes/competitionRoutes.ts
-import { Router as Router4 } from "express";
+import { Router as Router5 } from "express";
+init_Department();
 init_enums();
-var router4 = Router4();
-router4.get("/public", async (req, res) => {
+var router5 = Router5();
+var cleanParam = (val) => {
+  if (typeof val !== "string") return void 0;
+  const trimmed = val.trim();
+  if (!trimmed || trimmed === "undefined" || trimmed === "null") return void 0;
+  return trimmed;
+};
+var sanitizeForStudentOrPublic = (compDoc) => {
+  const obj = typeof compDoc.toObject === "function" ? compDoc.toObject() : { ...compDoc };
+  const effectiveStatus = computeEffectiveStatus(obj);
+  const remainingSeats = Math.max(0, (obj.maxRegistrations || 0) - (obj.currentRegistrationsCount || 0));
+  const percentageFilled = obj.maxRegistrations > 0 ? Math.min(100, Math.round((obj.currentRegistrationsCount || 0) / obj.maxRegistrations * 100)) : 0;
+  delete obj.approvalAuditTrail;
+  delete obj.hodRemarks;
+  delete obj.hosRemarks;
+  delete obj.dswRemarks;
+  delete obj.hodApproval;
+  delete obj.hosApproval;
+  delete obj.dswApproval;
+  delete obj.rejectionReason;
+  delete obj.revisionNotes;
+  delete obj.submissionRemarks;
+  delete obj.budgetProposal;
+  return {
+    ...obj,
+    status: effectiveStatus,
+    effectiveRegistrationStatus: effectiveStatus,
+    remainingSeats,
+    percentageFilled
+  };
+};
+var notifyTargetLevelApprovers = async (level, competition, title, message) => {
+  if (level === "HOD" /* HOD */) {
+    await notifyDepartmentHods(
+      competition.organizingDepartment,
+      competition.organizingSchool,
+      title,
+      message,
+      "/hod/dashboard",
+      "INFO"
+    );
+  } else if (level === "HOS" /* HOS */) {
+    await notifySchoolHos(
+      competition.organizingSchool,
+      title,
+      message,
+      "/hos/dashboard",
+      "INFO"
+    );
+  } else if (level === "DSW" /* DSW */) {
+    await broadcastToRoles(
+      ["DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */],
+      title,
+      message,
+      "/dsw/approval-queue",
+      "INFO"
+    );
+  }
+};
+router5.get("/public", async (req, res) => {
   try {
-    const { category, scope, schoolId, search, status } = req.query;
+    const category = cleanParam(req.query.category);
+    const scope = cleanParam(req.query.scope);
+    const schoolId = cleanParam(req.query.schoolId);
+    const search = cleanParam(req.query.search);
+    const status = cleanParam(req.query.status);
     const filter = {
       isPublished: true,
-      status: { $in: ["PUBLISHED" /* PUBLISHED */, "REGISTRATION_OPEN" /* REGISTRATION_OPEN */, "REGISTRATION_CLOSED" /* REGISTRATION_CLOSED */, "IN_PROGRESS" /* IN_PROGRESS */, "COMPLETED" /* COMPLETED */] }
+      status: {
+        $in: [
+          "PUBLISHED" /* PUBLISHED */,
+          "REGISTRATION_OPEN" /* REGISTRATION_OPEN */,
+          "REGISTRATION_CLOSED" /* REGISTRATION_CLOSED */,
+          "IN_PROGRESS" /* IN_PROGRESS */,
+          "COMPLETED" /* COMPLETED */
+        ]
+      }
     };
     if (category) filter.category = category;
     if (scope) filter.scope = scope;
     if (schoolId) filter.organizingSchool = schoolId;
-    if (status) filter.status = status;
     if (search) {
       filter.$or = [
-        { title: { $regex: String(search), $options: "i" } },
-        { code: { $regex: String(search), $options: "i" } },
-        { description: { $regex: String(search), $options: "i" } }
+        { title: { $regex: search, $options: "i" } },
+        { code: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } }
       ];
     }
-    const competitions = await Competition.find(filter).populate("organizingSchool", "name code").populate("organizer", "name email").populate("facultyCoordinator", "name email designation").sort({ proposedDate: 1 });
-    res.json({ success: true, count: competitions.length, data: competitions });
+    const competitions = await Competition.find(filter).populate("organizingSchool", "name code").populate("organizingDepartment", "name code").populate("organizer", "name email").populate("facultyCoordinator", "name email designation").sort({ proposedDate: 1 });
+    let data = competitions.map((c) => sanitizeForStudentOrPublic(c));
+    if (status) {
+      data = data.filter((c) => c.effectiveRegistrationStatus === status);
+    }
+    res.json({ success: true, count: data.length, data });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router4.get("/", authenticate, async (req, res) => {
+router5.get(
+  "/student-feed",
+  authenticate,
+  requireRoles("STUDENT" /* STUDENT */, "VOLUNTEER" /* VOLUNTEER */, "DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */),
+  async (req, res) => {
+    try {
+      const category = cleanParam(req.query.category);
+      const search = cleanParam(req.query.search);
+      const filter = {
+        isPublished: true,
+        status: {
+          $in: [
+            "PUBLISHED" /* PUBLISHED */,
+            "REGISTRATION_OPEN" /* REGISTRATION_OPEN */,
+            "REGISTRATION_CLOSED" /* REGISTRATION_CLOSED */,
+            "IN_PROGRESS" /* IN_PROGRESS */,
+            "COMPLETED" /* COMPLETED */
+          ]
+        }
+      };
+      if (category) filter.category = category;
+      if (search) {
+        filter.$or = [
+          { title: { $regex: search, $options: "i" } },
+          { code: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } }
+        ];
+      }
+      const [competitions, myRegs] = await Promise.all([
+        Competition.find(filter).populate("organizingSchool", "name code").populate("organizingDepartment", "name code").populate("organizer", "name email").populate("facultyCoordinator", "name email designation").sort({ proposedDate: 1 }),
+        Registration.find({
+          userId: req.user._id,
+          status: { $ne: "CANCELLED" /* CANCELLED */ }
+        }).select("competitionId status registrationNumber")
+      ]);
+      const regMap = /* @__PURE__ */ new Map();
+      myRegs.forEach((r) => regMap.set(r.competitionId.toString(), r));
+      const now = /* @__PURE__ */ new Date();
+      const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1e3);
+      const enriched = competitions.map((comp) => {
+        const sanitized = sanitizeForStudentOrPublic(comp);
+        let isEligible = true;
+        if (comp.eligibleSchools?.length > 0) {
+          const userSchool = req.user?.school?.toString();
+          if (!userSchool || !comp.eligibleSchools.some((s) => s.toString() === userSchool)) {
+            isEligible = false;
+          }
+        }
+        if (isEligible && comp.eligibleProgrammes?.length > 0 && req.user?.programme) {
+          if (!comp.eligibleProgrammes.includes(req.user.programme)) {
+            isEligible = false;
+          }
+        }
+        if (isEligible && comp.eligibleSemesters?.length > 0 && req.user?.semester) {
+          if (!comp.eligibleSemesters.includes(req.user.semester)) {
+            isEligible = false;
+          }
+        }
+        const existingReg = regMap.get(comp._id.toString());
+        return {
+          ...sanitized,
+          isEligible,
+          isAlreadyRegistered: Boolean(existingReg),
+          myRegistration: existingReg || null
+        };
+      });
+      const sections = {
+        all: enriched,
+        upcoming: enriched.filter(
+          (c) => c.effectiveRegistrationStatus === "PUBLISHED" /* PUBLISHED */ || c.proposedDate && new Date(c.proposedDate) > now && c.effectiveRegistrationStatus !== "COMPLETED" /* COMPLETED */
+        ),
+        openForRegistration: enriched.filter(
+          (c) => c.effectiveRegistrationStatus === "REGISTRATION_OPEN" /* REGISTRATION_OPEN */
+        ),
+        closingSoon: enriched.filter(
+          (c) => c.effectiveRegistrationStatus === "REGISTRATION_OPEN" /* REGISTRATION_OPEN */ && c.registrationCloseDate && new Date(c.registrationCloseDate) <= sevenDaysFromNow && new Date(c.registrationCloseDate) >= now
+        ),
+        registrationClosed: enriched.filter(
+          (c) => c.effectiveRegistrationStatus === "REGISTRATION_CLOSED" /* REGISTRATION_CLOSED */
+        ),
+        completed: enriched.filter(
+          (c) => c.effectiveRegistrationStatus === "COMPLETED" /* COMPLETED */
+        )
+      };
+      res.json({ success: true, data: sections });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+);
+router5.get("/", authenticate, async (req, res) => {
   try {
-    const { category, scope, schoolId, status, search, page = 1, limit = 50 } = req.query;
-    const filter = {};
-    const isGlobal = req.userRoles?.includes("DSW_ADMIN" /* DSW_ADMIN */) || req.userRoles?.includes("SUPER_ADMIN" /* SUPER_ADMIN */);
-    if (!isGlobal && req.userRoles?.includes("SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */) && req.user?.school) {
-      filter.$or = [
-        { organizingSchool: req.user.school },
-        { coOrganizingSchools: req.user.school },
-        { organizer: req.user._id }
-      ];
+    const roles = req.userRoles || [];
+    const isStaff = isDswRole(roles) || isHosRole(roles) || isHodRole(roles) || roles.includes("FACULTY" /* FACULTY */) || roles.includes("CULTURAL_COORDINATOR" /* CULTURAL_COORDINATOR */) || roles.includes("COMPETITION_ORGANIZER" /* COMPETITION_ORGANIZER */) || roles.includes("JUDGE" /* JUDGE */);
+    if (!isStaff) {
+      res.status(403).json({
+        success: false,
+        message: "Students cannot access internal proposal queues. Use /api/competitions/student-feed."
+      });
+      return;
     }
-    if (category) filter.category = category;
-    if (scope) filter.scope = scope;
-    if (schoolId) filter.organizingSchool = schoolId;
-    if (status) filter.status = status;
+    const category = cleanParam(req.query.category);
+    const scope = cleanParam(req.query.scope);
+    const schoolId = cleanParam(req.query.schoolId);
+    const departmentId = cleanParam(req.query.departmentId);
+    const status = cleanParam(req.query.status);
+    const approvalLevel = cleanParam(req.query.approvalLevel);
+    const queue = cleanParam(req.query.queue);
+    const search = cleanParam(req.query.search);
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 50;
+    const andConditions = [];
+    if (isDswRole(roles)) {
+      if (schoolId) andConditions.push({ organizingSchool: schoolId });
+      if (departmentId) andConditions.push({ organizingDepartment: departmentId });
+      if (queue === "pending") {
+        andConditions.push({
+          $or: [
+            { currentApprovalLevel: "DSW" /* DSW */ },
+            {
+              status: {
+                $in: [
+                  "PENDING_DSW_APPROVAL" /* PENDING_DSW_APPROVAL */,
+                  "SUBMITTED" /* SUBMITTED */,
+                  "UNDER_REVIEW" /* UNDER_REVIEW */,
+                  "RESUBMITTED" /* RESUBMITTED */
+                ]
+              }
+            }
+          ]
+        });
+      }
+    } else if (isHosRole(roles)) {
+      const userSchoolId = req.user?.school;
+      if (userSchoolId) {
+        andConditions.push({
+          $or: [
+            { organizingSchool: userSchoolId },
+            { coOrganizingSchools: userSchoolId },
+            { organizer: req.user._id }
+          ]
+        });
+      } else {
+        andConditions.push({ organizer: req.user._id });
+      }
+      if (queue === "pending") {
+        andConditions.push({
+          $or: [
+            { currentApprovalLevel: "HOS" /* HOS */ },
+            { status: "PENDING_HOS_APPROVAL" /* PENDING_HOS_APPROVAL */ }
+          ]
+        });
+      }
+    } else if (isHodRole(roles)) {
+      const deptOr = [{ organizer: req.user._id }];
+      if (req.user?.departmentId) {
+        deptOr.push({ organizingDepartment: req.user.departmentId });
+      }
+      if (req.user?.department && req.user?.school) {
+        deptOr.push({
+          organizingSchool: req.user.school,
+          organizingDepartmentName: req.user.department
+        });
+      }
+      andConditions.push({ $or: deptOr });
+      if (queue === "pending") {
+        andConditions.push({
+          $or: [
+            { currentApprovalLevel: "HOD" /* HOD */ },
+            { status: { $in: ["PENDING_HOD_APPROVAL" /* PENDING_HOD_APPROVAL */, "SUBMITTED_TO_HOD" /* SUBMITTED_TO_HOD */] } }
+          ]
+        });
+      }
+    } else if (roles.includes("JUDGE" /* JUDGE */) && !roles.includes("FACULTY" /* FACULTY */)) {
+      andConditions.push({ isPublished: true });
+    } else {
+      andConditions.push({
+        $or: [{ organizer: req.user._id }, { facultyCoordinator: req.user._id }]
+      });
+    }
+    if (category) andConditions.push({ category });
+    if (scope) andConditions.push({ scope });
+    if (status) andConditions.push({ status });
+    if (approvalLevel) andConditions.push({ currentApprovalLevel: approvalLevel });
     if (search) {
-      filter.$or = [
-        { title: { $regex: String(search), $options: "i" } },
-        { code: { $regex: String(search), $options: "i" } }
-      ];
+      andConditions.push({
+        $or: [
+          { title: { $regex: search, $options: "i" } },
+          { code: { $regex: search, $options: "i" } },
+          { proposalCode: { $regex: search, $options: "i" } }
+        ]
+      });
     }
-    const skip = (Number(page) - 1) * Number(limit);
+    const filter = andConditions.length > 0 ? { $and: andConditions } : {};
+    const skip = (page - 1) * limit;
     const [competitions, total] = await Promise.all([
-      Competition.find(filter).populate("organizingSchool", "name code").populate("coOrganizingSchools", "name code").populate("organizer", "name email designation").populate("facultyCoordinator", "name email designation").populate("centralCoordinator", "name email").sort({ updatedAt: -1 }).skip(skip).limit(Number(limit)),
+      Competition.find(filter).populate("organizingSchool", "name code").populate("organizingDepartment", "name code").populate("coOrganizingSchools", "name code").populate("organizer", "name email designation roles department departmentId").populate("facultyCoordinator", "name email designation").populate("centralCoordinator", "name email").populate("approvalAuditTrail.user", "name email roles designation").sort({ updatedAt: -1 }).skip(skip).limit(limit),
       Competition.countDocuments(filter)
     ]);
     res.json({
       success: true,
       total,
-      page: Number(page),
-      totalPages: Math.ceil(total / Number(limit)),
+      page,
+      totalPages: Math.ceil(total / limit),
       data: competitions
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router4.get("/:id", async (req, res) => {
+router5.get("/:id", authenticateOptional, async (req, res) => {
   try {
-    const competition = await Competition.findById(req.params.id).populate("organizingSchool", "name code description deanName").populate("coOrganizingSchools", "name code").populate("eligibleSchools", "name code").populate("organizer", "name email phone designation").populate("facultyCoordinator", "name email phone designation").populate("centralCoordinator", "name email phone designation").populate("approvalAuditTrail.user", "name email roles");
+    const competition = await Competition.findById(req.params.id).populate("organizingSchool", "name code description deanName").populate("organizingDepartment", "name code").populate("coOrganizingSchools", "name code").populate("eligibleSchools", "name code").populate("organizer", "name email phone designation roles department").populate("facultyCoordinator", "name email phone designation").populate("centralCoordinator", "name email phone designation").populate("hodApproval.approvedBy", "name email designation").populate("hosApproval.approvedBy", "name email designation").populate("dswApproval.approvedBy", "name email designation").populate("approvalAuditTrail.user", "name email roles designation");
     if (!competition) {
       res.status(404).json({ success: false, message: "Competition not found." });
       return;
     }
-    res.json({ success: true, data: competition });
+    const roles = req.userRoles || [];
+    const isStaffViewer = Boolean(req.user) && (isDswRole(roles) || isHosRole(roles) || isHodRole(roles) || competition.organizer?._id?.toString() === req.user._id.toString() || competition.facultyCoordinator?._id?.toString() === req.user._id.toString());
+    if (!competition.isPublished && !isStaffViewer) {
+      res.status(403).json({
+        success: false,
+        message: "This competition has not been approved and published by DSW yet."
+      });
+      return;
+    }
+    if (!isStaffViewer) {
+      res.json({ success: true, data: sanitizeForStudentOrPublic(competition) });
+      return;
+    }
+    const obj = competition.toObject();
+    const effectiveStatus = computeEffectiveStatus(competition);
+    res.json({
+      success: true,
+      data: {
+        ...obj,
+        effectiveRegistrationStatus: effectiveStatus,
+        remainingSeats: Math.max(0, (obj.maxRegistrations || 0) - (obj.currentRegistrationsCount || 0))
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router4.post(
+router5.get("/:id/timeline", authenticate, async (req, res) => {
+  try {
+    const roles = req.userRoles || [];
+    if (!isDswRole(roles) && !isHosRole(roles) && !isHodRole(roles) && !roles.includes("FACULTY" /* FACULTY */) && !roles.includes("CULTURAL_COORDINATOR" /* CULTURAL_COORDINATOR */)) {
+      res.status(403).json({ success: false, message: "Students cannot inspect internal approval history." });
+      return;
+    }
+    const [competition, proposal, history] = await Promise.all([
+      Competition.findById(req.params.id).populate("organizingSchool", "name code").populate("organizingDepartment", "name code").populate("organizer", "name email designation"),
+      CompetitionProposal.findOne({ competitionId: req.params.id }),
+      ApprovalHistory.find({ competitionId: req.params.id }).sort({ timestamp: 1 })
+    ]);
+    if (!competition) {
+      res.status(404).json({ success: false, message: "Competition not found." });
+      return;
+    }
+    res.json({
+      success: true,
+      data: {
+        competition,
+        proposal,
+        history: history.length > 0 ? history : competition.approvalAuditTrail
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+router5.post(
   "/",
   authenticate,
   requireRoles(
+    "FACULTY" /* FACULTY */,
+    "HOD" /* HOD */,
+    "HOS" /* HOS */,
     "SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */,
     "CULTURAL_COORDINATOR" /* CULTURAL_COORDINATOR */,
     "COMPETITION_ORGANIZER" /* COMPETITION_ORGANIZER */,
@@ -2441,8 +3385,11 @@ router4.post(
         code,
         description,
         category,
+        competitionType,
         scope,
         organizingSchool,
+        organizingDepartment,
+        organizingDepartmentName,
         coOrganizingSchools,
         isCentralDSW,
         facultyCoordinator,
@@ -2452,9 +3399,13 @@ router4.post(
         proposedDate,
         startDate,
         endDate,
+        startTime,
+        endTime,
         registrationOpenDate,
         registrationCloseDate,
         venue,
+        venueType,
+        onlinePlatformUrl,
         alternativeVenue,
         durationMinutes,
         reportingTime,
@@ -2468,9 +3419,13 @@ router4.post(
         eligibleProgrammes,
         eligibleSemesters,
         eligibilityConditions,
+        targetAudience,
+        contactEmail,
+        contactPhone,
         registrationFee,
         participantRequirements,
         requiredDocuments,
+        supportingDocuments,
         customFields,
         requiredFacultyCount,
         requiredVolunteersCount,
@@ -2479,7 +3434,8 @@ router4.post(
         budgetProposal,
         prizeDetails,
         sponsorshipInfo,
-        submitForReview
+        submitForReview,
+        submissionRemarks
       } = req.body;
       if (!title || !code || !proposedDate || !venue) {
         res.status(400).json({
@@ -2493,30 +3449,56 @@ router4.post(
         res.status(409).json({ success: false, message: `Competition code ${code} is already in use.` });
         return;
       }
-      const initialStatus = submitForReview ? "SUBMITTED" /* SUBMITTED */ : "DRAFT" /* DRAFT */;
+      const roles = req.userRoles || [];
+      const isDsw = isDswRole(roles);
+      const resolvedSchool = isCentralDSW ? void 0 : isDsw && organizingSchool ? organizingSchool : req.user?.school || organizingSchool;
+      let resolvedDeptId = isDsw && organizingDepartment ? organizingDepartment : req.user?.departmentId;
+      let resolvedDeptName = isDsw && organizingDepartmentName ? organizingDepartmentName : req.user?.department;
+      if (!resolvedDeptId && resolvedSchool && resolvedDeptName) {
+        const matchedDept = await Department.findOne({ school: resolvedSchool, name: resolvedDeptName });
+        if (matchedDept) resolvedDeptId = matchedDept._id;
+      } else if (resolvedDeptId && !resolvedDeptName) {
+        const matchedDept = await Department.findById(resolvedDeptId);
+        if (matchedDept) resolvedDeptName = matchedDept.name;
+      }
+      const route = getInitialSubmissionRoute(roles);
+      const initialStatus = submitForReview ? route.status : "DRAFT" /* DRAFT */;
+      const initialLevel = submitForReview ? route.level : "NONE" /* NONE */;
+      const parsedBudget = typeof budgetProposal === "object" && budgetProposal !== null ? Number(budgetProposal.totalEstimatedBudget || budgetProposal.amount || 0) || 0 : Number(budgetProposal) || 0;
       const competition = new Competition({
         title: title.trim(),
         code: code.toUpperCase().trim(),
         description: description?.trim() || "Competition description",
         category: category || "TECHNICAL" /* TECHNICAL */,
+        competitionType: competitionType?.trim() || category || "COMPETITION",
         scope: scope || "UNIVERSITY_LEVEL" /* UNIVERSITY_LEVEL */,
-        organizingSchool: isCentralDSW ? void 0 : organizingSchool || req.user?.school,
+        organizingSchool: resolvedSchool,
+        organizingDepartment: resolvedDeptId,
+        organizingDepartmentName: resolvedDeptName,
         coOrganizingSchools: coOrganizingSchools || [],
         isCentralDSW: Boolean(isCentralDSW),
         organizer: req.user._id,
-        facultyCoordinator: facultyCoordinator || void 0,
+        facultyCoordinator: facultyCoordinator || req.user._id,
+        targetAudience: targetAudience?.trim(),
+        contactEmail: contactEmail?.trim() || req.user?.email,
+        contactPhone: contactPhone?.trim() || req.user?.phone,
+        supportingDocuments: supportingDocuments || [],
         bannerUrl: bannerUrl || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&auto=format&fit=crop&q=80",
         objectives: objectives?.trim(),
         rulesAndRegulations: rulesAndRegulations?.trim(),
         proposedDate: new Date(proposedDate),
         startDate: startDate ? new Date(startDate) : new Date(proposedDate),
         endDate: endDate ? new Date(endDate) : new Date(proposedDate),
+        startTime: startTime || reportingTime || "09:00 AM",
+        endTime: endTime || "05:00 PM",
         registrationOpenDate: registrationOpenDate ? new Date(registrationOpenDate) : void 0,
         registrationCloseDate: registrationCloseDate ? new Date(registrationCloseDate) : void 0,
         venue: venue.trim(),
+        venueType: venueType || "CAMPUS",
+        onlinePlatformUrl: onlinePlatformUrl?.trim(),
         alternativeVenue: alternativeVenue?.trim(),
         durationMinutes: durationMinutes ? Number(durationMinutes) : 180,
-        reportingTime: reportingTime || "09:00 AM",
+        reportingTime: reportingTime || startTime || "09:00 AM",
         rounds: rounds && rounds.length > 0 ? rounds : [{ roundNumber: 1, name: "Main Round", date: new Date(proposedDate), venue: venue.trim() }],
         participationType: participationType || "INDIVIDUAL",
         minTeamSize: minTeamSize ? Number(minTeamSize) : 1,
@@ -2535,26 +3517,41 @@ router4.post(
         requiredVolunteersCount: requiredVolunteersCount ? Number(requiredVolunteersCount) : 5,
         equipment: equipment || [],
         venueResources: venueResources || [],
-        budgetProposal: typeof budgetProposal === "object" && budgetProposal !== null ? Number(budgetProposal.totalEstimatedBudget || budgetProposal.amount || 0) || 0 : Number(budgetProposal) || 0,
+        budgetProposal: parsedBudget,
         prizeDetails: prizeDetails || {
           winner: "\u20B910,000 + Trophy + Certificate",
           firstRunnerUp: "\u20B95,000 + Trophy + Certificate",
           secondRunnerUp: "\u20B92,500 + Medal + Certificate"
         },
         sponsorshipInfo: sponsorshipInfo?.trim(),
+        creatorRoleAtSubmission: route.origin,
+        currentApprovalLevel: initialLevel,
+        returnedFromLevel: null,
         status: initialStatus,
         isPublished: false,
-        approvalAuditTrail: [
-          {
-            user: req.user._id,
-            role: req.user.roles[0],
-            action: submitForReview ? "PROPOSAL_SUBMITTED" : "DRAFT_CREATED",
-            previousStatus: "DRAFT" /* DRAFT */,
-            newStatus: initialStatus,
-            remarks: submitForReview ? "Submitted directly for DSW review" : "Draft created",
-            timestamp: /* @__PURE__ */ new Date()
-          }
-        ]
+        submissionRemarks: submissionRemarks?.trim(),
+        dswApproval: submitForReview && route.origin === "DSW" ? {
+          approvedBy: req.user._id,
+          approvedAt: /* @__PURE__ */ new Date(),
+          remarks: "Created and approved directly by DSW"
+        } : void 0,
+        approvalAuditTrail: []
+      });
+      const proposalNum = `PROP-${(/* @__PURE__ */ new Date()).getFullYear()}-${competition._id.toString().slice(-6).toUpperCase()}`;
+      competition.proposalCode = proposalNum;
+      await recordApprovalTransition({
+        competition,
+        approverId: req.user._id,
+        approverName: req.user.name,
+        approverRole: route.origin,
+        approvalLevel: route.origin === "DSW" ? "DSW" /* DSW */ : "NONE" /* NONE */,
+        decision: submitForReview ? "SUBMITTED" : "DRAFT_CREATED",
+        previousStatus: "DRAFT" /* DRAFT */,
+        newStatus: initialStatus,
+        comments: submitForReview ? submissionRemarks || `Submitted by ${route.origin} (${req.user.name})` : "Draft saved",
+        actionLabel: submitForReview ? `SUBMITTED_BY_${route.origin}` : "DRAFT_CREATED",
+        currentApprovalLevel: initialLevel,
+        returnedFromLevel: null
       });
       await competition.save();
       await CompetitionProposalVersion.create({
@@ -2571,20 +3568,27 @@ router4.post(
         action: "CREATE_COMPETITION_PROPOSAL",
         resourceType: "COMPETITION",
         resourceId: competition._id.toString(),
-        newState: competition.toObject(),
+        newState: { status: initialStatus, level: initialLevel, origin: route.origin },
         ipAddress: req.ip
       });
-      if (submitForReview) {
-        await broadcastToRoles(
-          ["DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */],
-          "New Competition Proposal Submitted",
-          `"${competition.title}" (${competition.code}) has been submitted for DSW verification.`,
-          `/dsw/approval-queue`
+      if (submitForReview && initialLevel !== "NONE" /* NONE */) {
+        await notifyTargetLevelApprovers(
+          initialLevel,
+          competition,
+          `New Proposal Awaiting ${initialLevel} Approval`,
+          `"${competition.title}" (${competition.code}) submitted by ${req.user.name} requires ${initialLevel} review.`
         );
+        await sendNotification({
+          recipient: req.user._id,
+          title: "Proposal Submitted Successfully",
+          message: `Your proposal "${competition.title}" has been routed to ${initialLevel} for approval.`,
+          type: "SUCCESS",
+          actionUrl: `/competitions/${competition._id}`
+        });
       }
       res.status(201).json({
         success: true,
-        message: submitForReview ? "Proposal created and submitted for review." : "Draft proposal saved successfully.",
+        message: submitForReview ? route.origin === "DSW" ? "Competition created and DSW-approved. Ready to publish!" : `Proposal submitted and routed to ${initialLevel} for approval.` : "Draft proposal saved successfully.",
         data: competition
       });
     } catch (error) {
@@ -2592,33 +3596,40 @@ router4.post(
     }
   }
 );
-router4.put("/:id", authenticate, async (req, res) => {
+router5.put("/:id", authenticate, async (req, res) => {
   try {
     const competition = await Competition.findById(req.params.id);
     if (!competition) {
       res.status(404).json({ success: false, message: "Competition not found." });
       return;
     }
-    const isDSW = req.userRoles?.includes("DSW_ADMIN" /* DSW_ADMIN */) || req.userRoles?.includes("SUPER_ADMIN" /* SUPER_ADMIN */);
+    const isDSW = isDswRole(req.userRoles || []);
     const isOrganizer = competition.organizer.toString() === req.user._id.toString();
     if (!isDSW && !isOrganizer) {
-      res.status(403).json({ success: false, message: "You do not have permission to edit this competition." });
+      res.status(403).json({ success: false, message: "Only the proposal creator or DSW can edit this competition." });
       return;
     }
-    if (!isDSW && !["DRAFT", "REVISION_REQUIRED"].includes(competition.status)) {
+    const editableStatuses = [
+      "DRAFT" /* DRAFT */,
+      "CHANGES_REQUESTED" /* CHANGES_REQUESTED */,
+      "REVISION_REQUIRED" /* REVISION_REQUIRED */
+    ];
+    if (!isDSW && !editableStatuses.includes(competition.status)) {
       res.status(400).json({
         success: false,
-        message: `Cannot edit competition in ${competition.status} status. Only DRAFT and REVISION_REQUIRED can be updated.`
+        message: `Cannot edit proposal while status is ${competition.status}.`
       });
       return;
     }
-    const previousSnapshot = competition.toObject();
     const updatableFields = [
       "title",
       "description",
       "category",
+      "competitionType",
       "scope",
       "organizingSchool",
+      "organizingDepartment",
+      "organizingDepartmentName",
       "coOrganizingSchools",
       "facultyCoordinator",
       "centralCoordinator",
@@ -2628,9 +3639,13 @@ router4.put("/:id", authenticate, async (req, res) => {
       "proposedDate",
       "startDate",
       "endDate",
+      "startTime",
+      "endTime",
       "registrationOpenDate",
       "registrationCloseDate",
       "venue",
+      "venueType",
+      "onlinePlatformUrl",
       "alternativeVenue",
       "durationMinutes",
       "reportingTime",
@@ -2644,9 +3659,13 @@ router4.put("/:id", authenticate, async (req, res) => {
       "eligibleProgrammes",
       "eligibleSemesters",
       "eligibilityConditions",
+      "targetAudience",
+      "contactEmail",
+      "contactPhone",
       "registrationFee",
       "participantRequirements",
       "requiredDocuments",
+      "supportingDocuments",
       "customFields",
       "requiredFacultyCount",
       "requiredVolunteersCount",
@@ -2665,147 +3684,344 @@ router4.put("/:id", authenticate, async (req, res) => {
         }
       }
     });
-    if (req.body.resubmit && competition.status === "REVISION_REQUIRED" /* REVISION_REQUIRED */) {
-      competition.status = "RESUBMITTED" /* RESUBMITTED */;
-      competition.approvalAuditTrail.push({
-        user: req.user._id,
-        role: req.user.roles[0],
-        action: "PROPOSAL_RESUBMITTED",
-        previousStatus: "REVISION_REQUIRED" /* REVISION_REQUIRED */,
-        newStatus: "RESUBMITTED" /* RESUBMITTED */,
-        remarks: req.body.resubmissionNotes || "Addressed requested revisions and resubmitted.",
-        timestamp: /* @__PURE__ */ new Date()
+    const isResubmit = Boolean(req.body.resubmit) && ["CHANGES_REQUESTED" /* CHANGES_REQUESTED */, "REVISION_REQUIRED" /* REVISION_REQUIRED */].includes(competition.status);
+    if (isResubmit) {
+      const prevStatus = competition.status;
+      const resumeLevel = req.body.materialScopeChange ? getInitialSubmissionRoute(req.userRoles || []).level : competition.returnedFromLevel || getInitialSubmissionRoute(req.userRoles || []).level;
+      const statusByLevel = {
+        ["HOD" /* HOD */]: "PENDING_HOD_APPROVAL" /* PENDING_HOD_APPROVAL */,
+        ["HOS" /* HOS */]: "PENDING_HOS_APPROVAL" /* PENDING_HOS_APPROVAL */,
+        ["DSW" /* DSW */]: "PENDING_DSW_APPROVAL" /* PENDING_DSW_APPROVAL */,
+        ["NONE" /* NONE */]: "APPROVED_BY_DSW" /* APPROVED_BY_DSW */
+      };
+      const nextStatus = statusByLevel[resumeLevel];
+      competition.status = nextStatus;
+      competition.currentApprovalLevel = resumeLevel;
+      competition.returnedFromLevel = null;
+      await recordApprovalTransition({
+        competition,
+        approverId: req.user._id,
+        approverName: req.user.name,
+        approverRole: req.user.roles[0],
+        approvalLevel: "NONE" /* NONE */,
+        decision: "RESUBMITTED",
+        previousStatus: prevStatus,
+        newStatus: nextStatus,
+        comments: req.body.resubmissionNotes || "Addressed requested modifications and resubmitted.",
+        actionLabel: `RESUBMITTED_TO_${resumeLevel}`,
+        currentApprovalLevel: resumeLevel,
+        returnedFromLevel: null
       });
+      await notifyTargetLevelApprovers(
+        resumeLevel,
+        competition,
+        `Resubmitted Proposal Awaiting ${resumeLevel} Review`,
+        `"${competition.title}" was updated by ${req.user.name} and resubmitted for ${resumeLevel} review.`
+      );
     }
     await competition.save();
     const versionCount = await CompetitionProposalVersion.countDocuments({ competitionId: competition._id });
     await CompetitionProposalVersion.create({
       competitionId: competition._id,
       versionNumber: versionCount + 1,
-      changesSummary: req.body.changesSummary || "Updated proposal configuration",
+      changesSummary: req.body.changesSummary || (isResubmit ? "Resubmitted after modifications" : "Updated proposal details"),
       snapshotData: competition.toObject(),
       modifiedBy: req.user._id
     });
-    res.json({ success: true, message: "Competition updated successfully.", data: competition });
+    res.json({ success: true, message: isResubmit ? "Proposal resubmitted successfully." : "Competition updated successfully.", data: competition });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router4.post("/:id/submit", authenticate, async (req, res) => {
+router5.post("/:id/submit", authenticate, async (req, res) => {
   try {
     const competition = await Competition.findById(req.params.id);
     if (!competition) {
       res.status(404).json({ success: false, message: "Competition not found." });
       return;
     }
-    if (!["DRAFT" /* DRAFT */, "REVISION_REQUIRED" /* REVISION_REQUIRED */].includes(competition.status)) {
+    const isCreator = competition.organizer.toString() === req.user._id.toString();
+    if (!isCreator && !isDswRole(req.userRoles || [])) {
+      res.status(403).json({ success: false, message: "Only the proposal creator can submit this proposal." });
+      return;
+    }
+    const submittable = [
+      "DRAFT" /* DRAFT */,
+      "CHANGES_REQUESTED" /* CHANGES_REQUESTED */,
+      "REVISION_REQUIRED" /* REVISION_REQUIRED */
+    ];
+    if (!submittable.includes(competition.status)) {
       res.status(400).json({
         success: false,
-        message: `Only DRAFT or REVISION_REQUIRED competitions can be submitted. Current status: ${competition.status}`
+        message: `Cannot submit proposal in ${competition.status} status.`
       });
       return;
     }
     const previousStatus = competition.status;
-    const newStatus = previousStatus === "REVISION_REQUIRED" /* REVISION_REQUIRED */ ? "RESUBMITTED" /* RESUBMITTED */ : "SUBMITTED" /* SUBMITTED */;
+    const isResubmission = ["CHANGES_REQUESTED" /* CHANGES_REQUESTED */, "REVISION_REQUIRED" /* REVISION_REQUIRED */].includes(previousStatus);
+    const route = getInitialSubmissionRoute(req.userRoles || []);
+    const targetLevel = isResubmission && competition.returnedFromLevel ? competition.returnedFromLevel : route.level;
+    const statusByLevel = {
+      ["HOD" /* HOD */]: "PENDING_HOD_APPROVAL" /* PENDING_HOD_APPROVAL */,
+      ["HOS" /* HOS */]: "PENDING_HOS_APPROVAL" /* PENDING_HOS_APPROVAL */,
+      ["DSW" /* DSW */]: "PENDING_DSW_APPROVAL" /* PENDING_DSW_APPROVAL */,
+      ["NONE" /* NONE */]: "APPROVED_BY_DSW" /* APPROVED_BY_DSW */
+    };
+    const newStatus = statusByLevel[targetLevel];
     competition.status = newStatus;
-    competition.submissionRemarks = req.body.remarks || "Submitted for DSW evaluation";
-    competition.approvalAuditTrail.push({
-      user: req.user._id,
-      role: req.user.roles[0],
-      action: newStatus === "RESUBMITTED" /* RESUBMITTED */ ? "PROPOSAL_RESUBMITTED" : "PROPOSAL_SUBMITTED",
+    competition.currentApprovalLevel = targetLevel;
+    competition.returnedFromLevel = null;
+    competition.submissionRemarks = req.body.remarks || competition.submissionRemarks || "Submitted for review";
+    await recordApprovalTransition({
+      competition,
+      approverId: req.user._id,
+      approverName: req.user.name,
+      approverRole: route.origin,
+      approvalLevel: "NONE" /* NONE */,
+      decision: isResubmission ? "RESUBMITTED" : "SUBMITTED",
       previousStatus,
       newStatus,
-      remarks: competition.submissionRemarks,
-      timestamp: /* @__PURE__ */ new Date()
+      comments: competition.submissionRemarks,
+      actionLabel: isResubmission ? `RESUBMITTED_TO_${targetLevel}` : `SUBMITTED_TO_${targetLevel}`,
+      currentApprovalLevel: targetLevel,
+      returnedFromLevel: null
     });
     await competition.save();
-    await broadcastToRoles(
-      ["DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */],
-      "Competition Proposal Ready for Review",
-      `"${competition.title}" has been submitted for DSW verification.`,
-      "/dsw/approval-queue"
-    );
-    res.json({ success: true, message: "Proposal submitted for DSW review.", data: competition });
+    if (targetLevel !== "NONE" /* NONE */) {
+      await notifyTargetLevelApprovers(
+        targetLevel,
+        competition,
+        `Proposal Pending ${targetLevel} Approval`,
+        `"${competition.title}" (${competition.code}) has been submitted by ${req.user.name} for ${targetLevel} review.`
+      );
+      await sendNotification({
+        recipient: req.user._id,
+        title: isResubmission ? "Proposal Resubmitted" : "Proposal Submitted",
+        message: `"${competition.title}" has been forwarded to ${targetLevel} for approval.`,
+        type: "SUCCESS",
+        actionUrl: `/competitions/${competition._id}`
+      });
+    }
+    res.json({
+      success: true,
+      message: targetLevel === "NONE" /* NONE */ ? "Proposal approved by DSW." : `Proposal submitted to ${targetLevel} for review.`,
+      data: competition
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router4.post(
-  "/:id/review",
-  authenticate,
-  requireRoles("DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */),
-  async (req, res) => {
-    try {
-      const { action, remarks, centralCoordinatorId } = req.body;
-      if (!["APPROVE", "REJECT", "REVISION_REQUIRED"].includes(action)) {
-        res.status(400).json({ success: false, message: "Action must be APPROVE, REJECT, or REVISION_REQUIRED." });
+async function processLevelReview(req, res, level) {
+  try {
+    const rawAction = req.body.action;
+    const action = rawAction === "REVISION_REQUIRED" ? "CHANGES_REQUESTED" : rawAction;
+    const remarks = (req.body.remarks || req.body.comments || "").trim();
+    const { centralCoordinatorId } = req.body;
+    if (!["APPROVE", "REJECT", "CHANGES_REQUESTED"].includes(action)) {
+      res.status(400).json({
+        success: false,
+        message: "Action must be APPROVE, CHANGES_REQUESTED (or REVISION_REQUIRED), or REJECT."
+      });
+      return;
+    }
+    if ((action === "REJECT" || action === "CHANGES_REQUESTED") && remarks.length < 5) {
+      res.status(400).json({
+        success: false,
+        message: "Detailed comments (at least 5 characters) are mandatory when rejecting or requesting modifications."
+      });
+      return;
+    }
+    const competition = await Competition.findById(req.params.id);
+    if (!competition) {
+      res.status(404).json({ success: false, message: "Competition not found." });
+      return;
+    }
+    if (level !== "DSW" /* DSW */ && competition.organizer.toString() === req.user._id.toString()) {
+      res.status(403).json({
+        success: false,
+        message: "Authority violation: You cannot approve or review your own competition proposal."
+      });
+      return;
+    }
+    if (level === "HOD" /* HOD */) {
+      const sameDeptId = req.user?.departmentId && competition.organizingDepartment && req.user.departmentId.toString() === competition.organizingDepartment.toString();
+      const sameDeptName = req.user?.school && competition.organizingSchool && req.user.school.toString() === competition.organizingSchool.toString() && req.user?.department && competition.organizingDepartmentName === req.user.department;
+      if (!sameDeptId && !sameDeptName) {
+        res.status(403).json({
+          success: false,
+          message: "Department scope violation: You can only review proposals belonging to your department."
+        });
         return;
       }
-      if ((action === "REJECT" || action === "REVISION_REQUIRED") && (!remarks || remarks.trim().length < 5)) {
-        res.status(400).json({ success: false, message: "Mandatory detailed remarks required for rejection or revision request." });
+    } else if (level === "HOS" /* HOS */) {
+      if (!req.user?.school || !competition.organizingSchool || req.user.school.toString() !== competition.organizingSchool.toString()) {
+        res.status(403).json({
+          success: false,
+          message: "School scope violation: You can only review proposals belonging to your school."
+        });
         return;
       }
-      const competition = await Competition.findById(req.params.id);
-      if (!competition) {
-        res.status(404).json({ success: false, message: "Competition not found." });
-        return;
-      }
-      const previousStatus = competition.status;
-      let newStatus;
-      if (action === "APPROVE") {
-        newStatus = "APPROVED" /* APPROVED */;
-        competition.dswRemarks = remarks || "Approved by DSW";
+    }
+    const allowedAtLevel = {
+      ["HOD" /* HOD */]: competition.currentApprovalLevel === "HOD" /* HOD */ || ["PENDING_HOD_APPROVAL" /* PENDING_HOD_APPROVAL */, "SUBMITTED_TO_HOD" /* SUBMITTED_TO_HOD */].includes(competition.status),
+      ["HOS" /* HOS */]: competition.currentApprovalLevel === "HOS" /* HOS */ || competition.status === "PENDING_HOS_APPROVAL" /* PENDING_HOS_APPROVAL */,
+      ["DSW" /* DSW */]: competition.currentApprovalLevel === "DSW" /* DSW */ || [
+        "PENDING_DSW_APPROVAL" /* PENDING_DSW_APPROVAL */,
+        "SUBMITTED" /* SUBMITTED */,
+        "UNDER_REVIEW" /* UNDER_REVIEW */,
+        "RESUBMITTED" /* RESUBMITTED */
+      ].includes(competition.status)
+    };
+    if (!allowedAtLevel[level]) {
+      res.status(400).json({
+        success: false,
+        message: `Proposal is currently at ${competition.currentApprovalLevel || competition.status} stage and cannot be reviewed at the ${level} level.`
+      });
+      return;
+    }
+    const previousStatus = competition.status;
+    let newStatus;
+    let nextLevel = "NONE" /* NONE */;
+    let returnedFrom = null;
+    if (action === "APPROVE") {
+      if (level === "HOD" /* HOD */) {
+        newStatus = "PENDING_HOS_APPROVAL" /* PENDING_HOS_APPROVAL */;
+        nextLevel = "HOS" /* HOS */;
+        competition.hodApproval = {
+          approvedBy: req.user._id,
+          approvedAt: /* @__PURE__ */ new Date(),
+          remarks: remarks || "Approved by HOD"
+        };
+        competition.hodRemarks = remarks || "Approved by HOD";
+      } else if (level === "HOS" /* HOS */) {
+        newStatus = "PENDING_DSW_APPROVAL" /* PENDING_DSW_APPROVAL */;
+        nextLevel = "DSW" /* DSW */;
+        competition.hosApproval = {
+          approvedBy: req.user._id,
+          approvedAt: /* @__PURE__ */ new Date(),
+          remarks: remarks || "Approved by HOS"
+        };
+        competition.hosRemarks = remarks || "Approved by HOS";
+      } else {
+        newStatus = "APPROVED_BY_DSW" /* APPROVED_BY_DSW */;
+        nextLevel = "NONE" /* NONE */;
+        competition.dswApproval = {
+          approvedBy: req.user._id,
+          approvedAt: /* @__PURE__ */ new Date(),
+          remarks: remarks || "Final approval granted by DSW"
+        };
+        competition.dswRemarks = remarks || "Final approval granted by DSW";
         if (centralCoordinatorId) {
           competition.centralCoordinator = centralCoordinatorId;
         }
-      } else if (action === "REJECT") {
-        newStatus = "REJECTED" /* REJECTED */;
-        competition.rejectionReason = remarks;
-      } else {
-        newStatus = "REVISION_REQUIRED" /* REVISION_REQUIRED */;
-        competition.revisionNotes = remarks;
       }
-      competition.status = newStatus;
-      competition.approvalAuditTrail.push({
-        user: req.user._id,
-        role: req.user.roles[0],
-        action: `DSW_${action}`,
-        previousStatus,
-        newStatus,
-        remarks,
-        timestamp: /* @__PURE__ */ new Date()
-      });
-      await competition.save();
-      await logAudit({
-        user: req.user._id,
-        userName: req.user.name,
-        role: req.user.roles[0],
-        action: `DSW_REVIEW_${action}`,
-        resourceType: "COMPETITION",
-        resourceId: competition._id.toString(),
-        previousState: { status: previousStatus },
-        newState: { status: newStatus },
-        remarks,
-        ipAddress: req.ip
-      });
-      await sendNotification({
-        recipient: competition.organizer,
-        title: `Competition Proposal ${action === "APPROVE" ? "Approved" : action === "REJECT" ? "Rejected" : "Returned for Revision"}`,
-        message: `Your competition "${competition.title}" was reviewed by DSW: ${remarks || action}`,
-        type: action === "APPROVE" ? "SUCCESS" : action === "REJECT" ? "ALERT" : "WARNING",
-        actionUrl: `/competitions/${competition._id}`
-      });
-      res.json({
-        success: true,
-        message: `Competition successfully ${action === "APPROVE" ? "approved" : action === "REJECT" ? "rejected" : "returned for revision"}.`,
-        data: competition
-      });
-    } catch (error) {
-      res.status(500).json({ success: false, message: error.message });
+    } else if (action === "REJECT") {
+      newStatus = "REJECTED" /* REJECTED */;
+      nextLevel = "NONE" /* NONE */;
+      competition.rejectionReason = remarks;
+    } else {
+      newStatus = "CHANGES_REQUESTED" /* CHANGES_REQUESTED */;
+      nextLevel = "NONE" /* NONE */;
+      returnedFrom = level;
+      competition.revisionNotes = remarks;
     }
+    competition.status = newStatus;
+    competition.currentApprovalLevel = nextLevel;
+    competition.returnedFromLevel = returnedFrom;
+    await recordApprovalTransition({
+      competition,
+      approverId: req.user._id,
+      approverName: req.user.name,
+      approverRole: level,
+      approvalLevel: level,
+      decision: action === "APPROVE" ? "APPROVED" : action === "REJECT" ? "REJECTED" : "CHANGES_REQUESTED",
+      previousStatus,
+      newStatus,
+      comments: remarks,
+      actionLabel: `${level}_${action}`,
+      currentApprovalLevel: nextLevel,
+      returnedFromLevel: returnedFrom
+    });
+    await competition.save();
+    await logAudit({
+      user: req.user._id,
+      userName: req.user.name,
+      role: level,
+      action: `${level}_REVIEW_${action}`,
+      resourceType: "COMPETITION",
+      resourceId: competition._id.toString(),
+      previousState: { status: previousStatus },
+      newState: { status: newStatus, currentApprovalLevel: nextLevel },
+      remarks,
+      ipAddress: req.ip
+    });
+    const creatorMsg = action === "APPROVE" ? nextLevel !== "NONE" /* NONE */ ? `"${competition.title}" was approved by ${level} (${req.user.name}) and forwarded to ${nextLevel}.` : `"${competition.title}" received FINAL APPROVAL from DSW (${req.user.name}) and is ready to publish!` : action === "REJECT" ? `"${competition.title}" was rejected by ${level} (${req.user.name}): ${remarks}` : `Modifications were requested on "${competition.title}" by ${level} (${req.user.name}): ${remarks}`;
+    await sendNotification({
+      recipient: competition.organizer,
+      title: `Proposal ${action === "APPROVE" ? "Approved" : action === "REJECT" ? "Rejected" : "Changes Requested"} (${level})`,
+      message: creatorMsg,
+      type: action === "APPROVE" ? "SUCCESS" : action === "REJECT" ? "ALERT" : "WARNING",
+      actionUrl: `/competitions/${competition._id}`
+    });
+    if (action === "APPROVE" && nextLevel !== "NONE" /* NONE */) {
+      await notifyTargetLevelApprovers(
+        nextLevel,
+        competition,
+        `Proposal Forwarded by ${level} for ${nextLevel} Approval`,
+        `"${competition.title}" (${competition.code}) was endorsed by ${level} and awaits your review.`
+      );
+    }
+    if (action === "APPROVE" && level === "DSW" /* DSW */) {
+      await notifyDepartmentHods(
+        competition.organizingDepartment,
+        competition.organizingSchool,
+        "Department Proposal Approved by DSW",
+        `"${competition.title}" has received final DSW approval.`,
+        `/competitions/${competition._id}`,
+        "SUCCESS"
+      );
+      await notifySchoolHos(
+        competition.organizingSchool,
+        "School Proposal Approved by DSW",
+        `"${competition.title}" has received final DSW approval.`,
+        `/competitions/${competition._id}`,
+        "SUCCESS"
+      );
+    }
+    res.json({
+      success: true,
+      message: action === "APPROVE" ? nextLevel !== "NONE" /* NONE */ ? `Proposal approved by ${level} and forwarded to ${nextLevel}.` : "Proposal granted final DSW approval!" : action === "REJECT" ? `Proposal rejected by ${level}.` : `Modification request sent back to proposer by ${level}.`,
+      data: competition
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
+}
+router5.post(
+  "/:id/hod-review",
+  authenticate,
+  requireExactRoles("HOD" /* HOD */),
+  async (req, res) => processLevelReview(req, res, "HOD" /* HOD */)
 );
-router4.post(
+router5.post(
+  "/:id/hos-review",
+  authenticate,
+  requireExactRoles("HOS" /* HOS */, "SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */),
+  async (req, res) => processLevelReview(req, res, "HOS" /* HOS */)
+);
+router5.post(
+  "/:id/dsw-review",
+  authenticate,
+  requireRoles("DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */),
+  async (req, res) => processLevelReview(req, res, "DSW" /* DSW */)
+);
+router5.post(
+  "/:id/review",
+  authenticate,
+  requireRoles("DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */),
+  async (req, res) => processLevelReview(req, res, "DSW" /* DSW */)
+);
+router5.post(
   "/:id/publish",
   authenticate,
   requireRoles("DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */),
@@ -2816,27 +4032,31 @@ router4.post(
         res.status(404).json({ success: false, message: "Competition not found." });
         return;
       }
-      if (competition.status !== "APPROVED" /* APPROVED */) {
+      if (!["APPROVED_BY_DSW" /* APPROVED_BY_DSW */, "APPROVED" /* APPROVED */].includes(competition.status)) {
         res.status(400).json({
           success: false,
-          message: `Only APPROVED competitions can be published. Current status is ${competition.status}.`
+          message: `Only DSW-approved competitions can be published. Current status is ${competition.status}.`
         });
         return;
       }
       const previousStatus = competition.status;
-      const newStatus = "PUBLISHED" /* PUBLISHED */;
-      competition.status = newStatus;
       competition.isPublished = true;
       competition.publishedAt = /* @__PURE__ */ new Date();
-      competition.status = "REGISTRATION_OPEN" /* REGISTRATION_OPEN */;
-      competition.approvalAuditTrail.push({
-        user: req.user._id,
-        role: req.user.roles[0],
-        action: "COMPETITION_PUBLISHED",
+      competition.currentApprovalLevel = "NONE" /* NONE */;
+      const effectiveStatus = computeEffectiveStatus(competition);
+      competition.status = effectiveStatus;
+      await recordApprovalTransition({
+        competition,
+        approverId: req.user._id,
+        approverName: req.user.name,
+        approverRole: "DSW",
+        approvalLevel: "DSW" /* DSW */,
+        decision: "PUBLISHED",
         previousStatus,
-        newStatus: "REGISTRATION_OPEN" /* REGISTRATION_OPEN */,
-        remarks: req.body.remarks || "Competition officially published and registrations opened university-wide.",
-        timestamp: /* @__PURE__ */ new Date()
+        newStatus: effectiveStatus,
+        comments: req.body.remarks || (effectiveStatus === "PUBLISHED" /* PUBLISHED */ ? "Competition published as upcoming. Registration will open on scheduled opening date." : "Competition officially published and registration opened university-wide."),
+        actionLabel: "COMPETITION_PUBLISHED",
+        currentApprovalLevel: "NONE" /* NONE */
       });
       await competition.save();
       await logAudit({
@@ -2847,18 +4067,41 @@ router4.post(
         resourceType: "COMPETITION",
         resourceId: competition._id.toString(),
         previousState: { isPublished: false, status: previousStatus },
-        newState: { isPublished: true, status: "REGISTRATION_OPEN" /* REGISTRATION_OPEN */ },
+        newState: { isPublished: true, status: effectiveStatus },
         ipAddress: req.ip
       });
       await broadcastToRoles(
         ["STUDENT" /* STUDENT */],
-        `New Competition Open: ${competition.title}`,
-        `Registration is now open for ${competition.title}! Check details and register now.`,
+        effectiveStatus === "REGISTRATION_OPEN" /* REGISTRATION_OPEN */ ? `Registration Open: ${competition.title}` : `New Upcoming Competition: ${competition.title}`,
+        effectiveStatus === "REGISTRATION_OPEN" /* REGISTRATION_OPEN */ ? `Registration is now open for ${competition.title}! Check details and register before seats fill up.` : `${competition.title} has been published! Registration opens on ${new Date(competition.registrationOpenDate).toLocaleDateString()}.`,
+        `/competitions/${competition._id}`,
+        "INFO"
+      );
+      await broadcastToUsers(
+        [competition.organizer, competition.facultyCoordinator],
+        "Your Competition is Now Published!",
+        `"${competition.title}" is now visible to CT University students (Status: ${effectiveStatus.replace(/_/g, " ")}).`,
+        "SUCCESS",
         `/competitions/${competition._id}`
+      );
+      await notifyDepartmentHods(
+        competition.organizingDepartment,
+        competition.organizingSchool,
+        "Department Competition Published",
+        `"${competition.title}" is live for student visibility.`,
+        `/competitions/${competition._id}`,
+        "SUCCESS"
+      );
+      await notifySchoolHos(
+        competition.organizingSchool,
+        "School Competition Published",
+        `"${competition.title}" is live for student visibility.`,
+        `/competitions/${competition._id}`,
+        "SUCCESS"
       );
       res.json({
         success: true,
-        message: "Competition published and registration opened successfully!",
+        message: effectiveStatus === "REGISTRATION_OPEN" /* REGISTRATION_OPEN */ ? "Competition published and registration opened successfully!" : effectiveStatus === "PUBLISHED" /* PUBLISHED */ ? "Competition published as upcoming; registration remains closed until the scheduled opening date." : "Competition published (registration closed per deadline/capacity).",
         data: competition
       });
     } catch (error) {
@@ -2866,15 +4109,33 @@ router4.post(
     }
   }
 );
-router4.post(
+router5.post(
   "/:id/status",
   authenticate,
-  requireRoles("DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */, "SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */, "COMPETITION_ORGANIZER" /* COMPETITION_ORGANIZER */),
+  requireRoles(
+    "DSW_ADMIN" /* DSW_ADMIN */,
+    "SUPER_ADMIN" /* SUPER_ADMIN */,
+    "HOS" /* HOS */,
+    "SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */,
+    "HOD" /* HOD */,
+    "COMPETITION_ORGANIZER" /* COMPETITION_ORGANIZER */
+  ),
   async (req, res) => {
     try {
       const { status, remarks } = req.body;
-      if (!Object.values(CompetitionStatus).includes(status)) {
-        res.status(400).json({ success: false, message: "Invalid competition status." });
+      const operationalStatuses = [
+        "IN_PROGRESS" /* IN_PROGRESS */,
+        "COMPLETED" /* COMPLETED */,
+        "POSTPONED" /* POSTPONED */,
+        "CANCELLED" /* CANCELLED */,
+        "REGISTRATION_CLOSED" /* REGISTRATION_CLOSED */,
+        "REGISTRATION_OPEN" /* REGISTRATION_OPEN */
+      ];
+      if (!operationalStatuses.includes(status)) {
+        res.status(400).json({
+          success: false,
+          message: "Status transition endpoint only supports operational statuses (REGISTRATION_OPEN/CLOSED, IN_PROGRESS, COMPLETED, POSTPONED, CANCELLED)."
+        });
         return;
       }
       const competition = await Competition.findById(req.params.id);
@@ -2882,28 +4143,49 @@ router4.post(
         res.status(404).json({ success: false, message: "Competition not found." });
         return;
       }
+      if (!competition.isPublished && !isDswRole(req.userRoles || [])) {
+        res.status(400).json({
+          success: false,
+          message: "Cannot change operational status before DSW approval and publication."
+        });
+        return;
+      }
       const previousStatus = competition.status;
       competition.status = status;
-      competition.approvalAuditTrail.push({
-        user: req.user._id,
-        role: req.user.roles[0],
-        action: `STATUS_CHANGE_TO_${status}`,
+      await recordApprovalTransition({
+        competition,
+        approverId: req.user._id,
+        approverName: req.user.name,
+        approverRole: req.user.roles[0],
+        approvalLevel: isDswRole(req.userRoles || []) ? "DSW" /* DSW */ : "NONE" /* NONE */,
+        decision: "STATUS_UPDATED",
         previousStatus,
         newStatus: status,
-        remarks: remarks || `Status changed from ${previousStatus} to ${status}`,
-        timestamp: /* @__PURE__ */ new Date()
+        comments: remarks || `Status updated from ${previousStatus} to ${status}`,
+        actionLabel: `STATUS_CHANGE_TO_${status}`,
+        currentApprovalLevel: competition.currentApprovalLevel || "NONE" /* NONE */
       });
       await competition.save();
+      if (status === "CANCELLED" /* CANCELLED */ || status === "POSTPONED" /* POSTPONED */) {
+        const regs = await Registration.find({ competitionId: competition._id, status: { $ne: "CANCELLED" /* CANCELLED */ } }).select("userId");
+        await broadcastToUsers(
+          regs.map((r) => r.userId),
+          `Event Update: ${competition.title} (${status})`,
+          `"${competition.title}" has been marked as ${status}. ${remarks || ""}`,
+          "ALERT",
+          `/competitions/${competition._id}`
+        );
+      }
       res.json({ success: true, message: `Status updated to ${status}.`, data: competition });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }
   }
 );
-var competitionRoutes_default = router4;
+var competitionRoutes_default = router5;
 
 // server/src/routes/registrationRoutes.ts
-import { Router as Router5 } from "express";
+import { Router as Router6 } from "express";
 init_enums();
 
 // server/src/services/exportService.ts
@@ -2921,164 +4203,346 @@ var generateCsvBuffer = (data) => {
 };
 
 // server/src/routes/registrationRoutes.ts
-var router5 = Router5();
-router5.post("/", authenticate, async (req, res) => {
-  try {
-    const { competitionId, participantType, teamName, teamMembers, customFieldResponses } = req.body;
-    const userId = req.user._id;
-    if (!competitionId) {
-      res.status(400).json({ success: false, message: "Competition ID is required." });
-      return;
-    }
-    const competition = await Competition.findById(competitionId);
-    if (!competition) {
-      res.status(404).json({ success: false, message: "Competition not found." });
-      return;
-    }
-    if (!competition.isPublished || competition.status !== "REGISTRATION_OPEN" /* REGISTRATION_OPEN */) {
-      res.status(400).json({
-        success: false,
-        message: `Registrations are not open for this competition. Current status: ${competition.status}`
-      });
-      return;
-    }
-    if (competition.registrationCloseDate && /* @__PURE__ */ new Date() > new Date(competition.registrationCloseDate)) {
-      res.status(400).json({ success: false, message: "Registration deadline has passed." });
-      return;
-    }
-    const existing = await Registration.findOne({ competitionId, userId });
-    if (existing && existing.status !== "CANCELLED" /* CANCELLED */) {
-      res.status(409).json({
-        success: false,
-        message: `You are already registered for this competition (Reg #: ${existing.registrationNumber}).`
-      });
-      return;
-    }
-    if (competition.eligibleSchools && competition.eligibleSchools.length > 0) {
-      const userSchool = req.user?.school?.toString();
-      const isEligibleSchool = competition.eligibleSchools.some((s) => s.toString() === userSchool);
-      if (!isEligibleSchool) {
-        res.status(403).json({
-          success: false,
-          message: "Your school is not eligible to participate in this competition according to the defined scope."
-        });
-        return;
-      }
-    }
-    if (competition.eligibleProgrammes && competition.eligibleProgrammes.length > 0) {
-      if (req.user?.programme && !competition.eligibleProgrammes.includes(req.user.programme)) {
-        res.status(403).json({
-          success: false,
-          message: `Your programme (${req.user.programme}) is not among the eligible programmes.`
-        });
-        return;
-      }
-    }
-    if (competition.eligibleSemesters && competition.eligibleSemesters.length > 0) {
-      if (req.user?.semester && !competition.eligibleSemesters.includes(req.user.semester)) {
-        res.status(403).json({
-          success: false,
-          message: `Your semester (${req.user.semester}) is not eligible for this competition.`
-        });
-        return;
-      }
-    }
-    const currentConfirmed = await Registration.countDocuments({
-      competitionId,
-      status: { $in: ["CONFIRMED" /* CONFIRMED */, "CHECKED_IN" /* CHECKED_IN */] }
-    });
-    let regStatus = "CONFIRMED" /* CONFIRMED */;
-    if (competition.maxRegistrations && currentConfirmed >= competition.maxRegistrations) {
-      regStatus = "WAITLISTED" /* WAITLISTED */;
-    }
-    if (competition.participationType === "TEAM" || participantType === "TEAM") {
-      if (!teamName || teamName.trim().length === 0) {
-        res.status(400).json({ success: false, message: "Team name is required for team participation." });
-        return;
-      }
-      const membersCount = 1 + (teamMembers ? teamMembers.length : 0);
-      if (competition.minTeamSize && membersCount < competition.minTeamSize) {
-        res.status(400).json({
-          success: false,
-          message: `Minimum team size is ${competition.minTeamSize} members. You provided ${membersCount}.`
-        });
-        return;
-      }
-      if (competition.maxTeamSize && membersCount > competition.maxTeamSize) {
-        res.status(400).json({
-          success: false,
-          message: `Maximum team size is ${competition.maxTeamSize} members. You provided ${membersCount}.`
-        });
-        return;
-      }
-    }
-    const count = await Registration.countDocuments();
-    const registrationNumber = `CTU-REG-2026-${String(count + 1001).padStart(5, "0")}`;
-    const qrPayload = JSON.stringify({
-      regNo: registrationNumber,
-      comp: competition.code,
-      user: req.user?.name,
-      studentId: req.user?.registrationNumber,
-      issuedAt: (/* @__PURE__ */ new Date()).toISOString()
-    });
-    const qrCodeData = await generateQRCodeDataUrl(qrPayload);
-    const registration = new Registration({
-      registrationNumber,
-      competitionId,
-      participantType: participantType || competition.participationType || "INDIVIDUAL",
-      userId,
-      school: req.user?.school,
-      teamName: teamName?.trim(),
-      teamMembers: teamMembers || [],
-      status: regStatus,
-      qrCodeData,
-      customFieldResponses
-    });
-    await registration.save();
-    await Competition.findByIdAndUpdate(competitionId, { $inc: { currentRegistrationsCount: 1 } });
-    await logAudit({
-      user: req.user._id,
-      userName: req.user.name,
-      role: req.user.roles[0],
-      action: "REGISTER_COMPETITION",
-      resourceType: "REGISTRATION",
-      resourceId: registration._id.toString(),
-      newState: { registrationNumber, status: regStatus, competitionTitle: competition.title },
-      ipAddress: req.ip
-    });
-    await sendNotification({
-      recipient: userId,
-      title: regStatus === "CONFIRMED" /* CONFIRMED */ ? "Registration Confirmed!" : "Waitlisted for Competition",
-      message: `Your registration (${registrationNumber}) for "${competition.title}" has been ${regStatus.toLowerCase()}.`,
-      type: regStatus === "CONFIRMED" /* CONFIRMED */ ? "SUCCESS" : "WARNING",
-      actionUrl: `/student/registrations`
-    });
-    res.status(201).json({
-      success: true,
-      message: regStatus === "CONFIRMED" /* CONFIRMED */ ? "Registration successful! Your digital badge and QR code are ready." : "Competition capacity reached. You have been placed on the waiting list.",
-      data: registration
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+var router6 = Router6();
+function canMonitorCompetition(req, competition) {
+  const roles = req.userRoles || [];
+  if (isDswRole(roles)) return true;
+  if (competition.organizer?.toString() === req.user._id.toString() || competition.facultyCoordinator?.toString() === req.user._id.toString()) {
+    return true;
   }
-});
-router5.get("/my", authenticate, async (req, res) => {
+  if (isHosRole(roles) && req.user?.school && competition.organizingSchool) {
+    if (req.user.school.toString() === competition.organizingSchool.toString()) return true;
+  }
+  if (isHodRole(roles)) {
+    if (req.user?.departmentId && competition.organizingDepartment && req.user.departmentId.toString() === competition.organizingDepartment.toString()) {
+      return true;
+    }
+    if (req.user?.school && competition.organizingSchool && req.user.school.toString() === competition.organizingSchool.toString() && req.user?.department && competition.organizingDepartmentName === req.user.department) {
+      return true;
+    }
+  }
+  return false;
+}
+router6.post(
+  "/",
+  authenticate,
+  requireExactRoles("STUDENT" /* STUDENT */),
+  async (req, res) => {
+    try {
+      const { competitionId, participantType, teamName, teamMembers, customFieldResponses } = req.body;
+      const userId = req.user._id;
+      if (!competitionId) {
+        res.status(400).json({ success: false, message: "Competition ID is required." });
+        return;
+      }
+      const competition = await Competition.findById(competitionId);
+      if (!competition) {
+        res.status(404).json({ success: false, message: "Competition not found." });
+        return;
+      }
+      if (!competition.isPublished) {
+        res.status(403).json({
+          success: false,
+          message: "Registration is blocked: this competition has not been approved and published by DSW."
+        });
+        return;
+      }
+      const now = /* @__PURE__ */ new Date();
+      if (competition.registrationOpenDate && now < new Date(competition.registrationOpenDate)) {
+        res.status(400).json({
+          success: false,
+          message: `Registration is not open yet. It opens on ${new Date(competition.registrationOpenDate).toLocaleString()}.`
+        });
+        return;
+      }
+      if (competition.registrationCloseDate && now > new Date(competition.registrationCloseDate)) {
+        if (competition.status === "REGISTRATION_OPEN" /* REGISTRATION_OPEN */) {
+          competition.status = "REGISTRATION_CLOSED" /* REGISTRATION_CLOSED */;
+          await competition.save();
+        }
+        res.status(400).json({ success: false, message: "Registration deadline has passed." });
+        return;
+      }
+      const effectiveStatus = computeEffectiveStatus(competition);
+      if (effectiveStatus !== "REGISTRATION_OPEN" /* REGISTRATION_OPEN */) {
+        res.status(400).json({
+          success: false,
+          message: `Registrations are currently closed for this competition (Status: ${effectiveStatus.replace(/_/g, " ")}).`
+        });
+        return;
+      }
+      const existing = await Registration.findOne({ competitionId, userId });
+      if (existing && existing.status !== "CANCELLED" /* CANCELLED */) {
+        res.status(409).json({
+          success: false,
+          message: `You are already registered for this competition (Reg #: ${existing.registrationNumber}).`
+        });
+        return;
+      }
+      if (competition.eligibleSchools && competition.eligibleSchools.length > 0) {
+        const userSchool = req.user?.school?.toString();
+        const isEligibleSchool = userSchool && competition.eligibleSchools.some((s) => s.toString() === userSchool);
+        if (!isEligibleSchool) {
+          res.status(403).json({
+            success: false,
+            message: "Your school is not eligible to participate in this competition."
+          });
+          return;
+        }
+      }
+      if (competition.eligibleProgrammes && competition.eligibleProgrammes.length > 0) {
+        if (req.user?.programme && !competition.eligibleProgrammes.includes(req.user.programme)) {
+          res.status(403).json({
+            success: false,
+            message: `Your programme (${req.user.programme}) is not eligible for this competition.`
+          });
+          return;
+        }
+      }
+      if (competition.eligibleSemesters && competition.eligibleSemesters.length > 0) {
+        if (req.user?.semester && !competition.eligibleSemesters.includes(req.user.semester)) {
+          res.status(403).json({
+            success: false,
+            message: `Your semester (${req.user.semester}) is not eligible for this competition.`
+          });
+          return;
+        }
+      }
+      const isTeamMode = competition.participationType === "TEAM" || participantType === "TEAM";
+      const cleanedMembers = Array.isArray(teamMembers) ? teamMembers.filter((m) => m && m.name?.trim() && m.email?.trim()) : [];
+      if (isTeamMode) {
+        if (!teamName || teamName.trim().length === 0) {
+          res.status(400).json({ success: false, message: "Team name is required for team participation." });
+          return;
+        }
+        const membersCount = 1 + cleanedMembers.length;
+        if (competition.minTeamSize && membersCount < competition.minTeamSize) {
+          res.status(400).json({
+            success: false,
+            message: `Minimum team size is ${competition.minTeamSize} members (including leader). Provided: ${membersCount}.`
+          });
+          return;
+        }
+        if (competition.maxTeamSize && membersCount > competition.maxTeamSize) {
+          res.status(400).json({
+            success: false,
+            message: `Maximum team size is ${competition.maxTeamSize} members (including leader). Provided: ${membersCount}.`
+          });
+          return;
+        }
+        const memberEmails = cleanedMembers.map((m) => m.email.toLowerCase().trim());
+        const leaderEmail = req.user.email.toLowerCase().trim();
+        if (memberEmails.includes(leaderEmail) || new Set(memberEmails).size !== memberEmails.length) {
+          res.status(400).json({
+            success: false,
+            message: "Team members must have unique email addresses and cannot duplicate the team leader."
+          });
+          return;
+        }
+        const existingTeam = await Team.findOne({
+          competitionId,
+          teamName: teamName.trim(),
+          status: "ACTIVE"
+        });
+        if (existingTeam) {
+          res.status(409).json({
+            success: false,
+            message: `A team named "${teamName.trim()}" is already registered for this competition.`
+          });
+          return;
+        }
+      }
+      const reservedComp = await Competition.findOneAndUpdate(
+        {
+          _id: competitionId,
+          isPublished: true,
+          status: "REGISTRATION_OPEN" /* REGISTRATION_OPEN */,
+          $or: [
+            { maxRegistrations: { $lte: 0 } },
+            { maxRegistrations: { $exists: false } },
+            { $expr: { $lt: ["$currentRegistrationsCount", "$maxRegistrations"] } }
+          ]
+        },
+        { $inc: { currentRegistrationsCount: 1 } },
+        { new: true }
+      );
+      if (!reservedComp) {
+        if (competition.maxRegistrations > 0 && competition.currentRegistrationsCount >= competition.maxRegistrations) {
+          await Competition.findByIdAndUpdate(competitionId, {
+            $set: { status: "REGISTRATION_CLOSED" /* REGISTRATION_CLOSED */ }
+          });
+        }
+        res.status(400).json({
+          success: false,
+          message: "Registration failed: competition capacity has been reached or registration just closed."
+        });
+        return;
+      }
+      let registration;
+      try {
+        if (existing && existing.status === "CANCELLED" /* CANCELLED */) {
+          await Registration.deleteOne({ _id: existing._id });
+        }
+        const randomSuffix = Math.floor(1e4 + Math.random() * 9e4);
+        const registrationNumber = `CTU-REG-${(/* @__PURE__ */ new Date()).getFullYear()}-${randomSuffix}`;
+        const qrPayload = JSON.stringify({
+          regNo: registrationNumber,
+          comp: competition.code,
+          user: req.user?.name,
+          studentId: req.user?.registrationNumber,
+          issuedAt: now.toISOString()
+        });
+        const qrCodeData = await generateQRCodeDataUrl(qrPayload);
+        registration = new Registration({
+          registrationNumber,
+          competitionId,
+          participantType: isTeamMode ? "TEAM" : "INDIVIDUAL",
+          userId,
+          school: req.user?.school,
+          departmentId: req.user?.departmentId,
+          departmentName: req.user?.department,
+          teamName: isTeamMode ? teamName.trim() : void 0,
+          teamMembers: isTeamMode ? cleanedMembers : [],
+          status: "CONFIRMED" /* CONFIRMED */,
+          qrCodeData,
+          customFieldResponses
+        });
+        await registration.save();
+        if (isTeamMode) {
+          const team = await Team.create({
+            competitionId,
+            registrationId: registration._id,
+            teamName: teamName.trim(),
+            leaderId: userId,
+            members: [
+              {
+                name: req.user.name,
+                email: req.user.email,
+                studentId: req.user.registrationNumber,
+                phone: req.user.phone,
+                programme: req.user.programme,
+                semester: req.user.semester
+              },
+              ...cleanedMembers
+            ],
+            teamSize: 1 + cleanedMembers.length,
+            status: "ACTIVE"
+          });
+          registration.teamId = team._id;
+          await registration.save();
+        }
+      } catch (saveErr) {
+        await Competition.findByIdAndUpdate(competitionId, {
+          $inc: { currentRegistrationsCount: -1 }
+        });
+        throw saveErr;
+      }
+      if (reservedComp.maxRegistrations > 0 && reservedComp.currentRegistrationsCount >= reservedComp.maxRegistrations) {
+        await Competition.findByIdAndUpdate(competitionId, {
+          $set: { status: "REGISTRATION_CLOSED" /* REGISTRATION_CLOSED */ }
+        });
+        await CompetitionProposal.findOneAndUpdate(
+          { competitionId },
+          { $set: { status: "REGISTRATION_CLOSED" /* REGISTRATION_CLOSED */ } }
+        );
+        await broadcastToRoles(
+          ["DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */],
+          `Capacity Reached: ${competition.title}`,
+          `"${competition.title}" reached 100% capacity (${reservedComp.currentRegistrationsCount}/${reservedComp.maxRegistrations}) and automatically closed registrations.`,
+          `/competitions/${competition._id}`,
+          "WARNING"
+        );
+      } else if (reservedComp.maxRegistrations > 0 && reservedComp.currentRegistrationsCount / reservedComp.maxRegistrations >= 0.8) {
+        await broadcastToRoles(
+          ["DSW_ADMIN" /* DSW_ADMIN */],
+          `Nearing Capacity: ${competition.title}`,
+          `"${competition.title}" is now ${Math.round(reservedComp.currentRegistrationsCount / reservedComp.maxRegistrations * 100)}% full (${reservedComp.currentRegistrationsCount}/${reservedComp.maxRegistrations}).`,
+          `/reports`,
+          "INFO"
+        );
+      }
+      await logAudit({
+        user: req.user._id,
+        userName: req.user.name,
+        role: req.user.roles[0],
+        action: "REGISTER_COMPETITION",
+        resourceType: "REGISTRATION",
+        resourceId: registration._id.toString(),
+        newState: {
+          registrationNumber: registration.registrationNumber,
+          status: "CONFIRMED" /* CONFIRMED */,
+          competitionTitle: competition.title
+        },
+        ipAddress: req.ip
+      });
+      await sendNotification({
+        recipient: userId,
+        title: "Registration Confirmed!",
+        message: `Your registration (${registration.registrationNumber}) for "${competition.title}" is confirmed.`,
+        type: "SUCCESS",
+        actionUrl: `/student/registrations`
+      });
+      if (reservedComp.currentRegistrationsCount === 1 || reservedComp.currentRegistrationsCount % 5 === 0) {
+        await sendNotification({
+          recipient: competition.organizer,
+          title: `Registration Update: ${competition.title}`,
+          message: `Current registrations: ${reservedComp.currentRegistrationsCount} / ${reservedComp.maxRegistrations || "\u221E"}.`,
+          type: "INFO",
+          actionUrl: `/competitions/${competition._id}`
+        });
+        await notifyDepartmentHods(
+          competition.organizingDepartment,
+          competition.organizingSchool,
+          `Department Registration Update: ${competition.title}`,
+          `Registrations reached ${reservedComp.currentRegistrationsCount} / ${reservedComp.maxRegistrations || "\u221E"}.`,
+          `/hod/dashboard`
+        );
+        await notifySchoolHos(
+          competition.organizingSchool,
+          `School Registration Update: ${competition.title}`,
+          `Registrations reached ${reservedComp.currentRegistrationsCount} / ${reservedComp.maxRegistrations || "\u221E"}.`,
+          `/hos/dashboard`
+        );
+      }
+      res.status(201).json({
+        success: true,
+        message: "Registration successful! Your digital badge and QR code are ready.",
+        data: registration
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+);
+router6.get("/my", authenticate, async (req, res) => {
   try {
-    const registrations = await Registration.find({ userId: req.user._id }).populate("competitionId").populate("school", "name code").sort({ createdAt: -1 });
+    const registrations = await Registration.find({ userId: req.user._id }).populate("competitionId").populate("school", "name code").populate("teamId").sort({ createdAt: -1 });
     res.json({ success: true, count: registrations.length, data: registrations });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router5.get(
+router6.get(
   "/competition/:competitionId",
   authenticate,
   async (req, res) => {
     try {
+      const competition = await Competition.findById(req.params.competitionId);
+      if (!competition) {
+        res.status(404).json({ success: false, message: "Competition not found." });
+        return;
+      }
+      if (!canMonitorCompetition(req, competition)) {
+        res.status(403).json({
+          success: false,
+          message: "Forbidden: You do not have authority to view registrations for this competition."
+        });
+        return;
+      }
       const { status, search, page = 1, limit = 50 } = req.query;
       const filter = { competitionId: req.params.competitionId };
-      if (status) filter.status = status;
-      if (search) {
+      if (status && status !== "undefined") filter.status = status;
+      if (search && search !== "undefined") {
         filter.$or = [
           { registrationNumber: { $regex: String(search), $options: "i" } },
           { teamName: { $regex: String(search), $options: "i" } }
@@ -3086,7 +4550,7 @@ router5.get(
       }
       const skip = (Number(page) - 1) * Number(limit);
       const [registrations, total] = await Promise.all([
-        Registration.find(filter).populate("userId", "name email registrationNumber phone department programme semester avatarUrl").populate("school", "name code").sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
+        Registration.find(filter).populate("userId", "name email registrationNumber phone department programme semester avatarUrl").populate("school", "name code").populate("teamId").sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
         Registration.countDocuments(filter)
       ]);
       res.json({
@@ -3101,11 +4565,16 @@ router5.get(
     }
   }
 );
-router5.post("/:id/checkin", authenticate, async (req, res) => {
+router6.post("/:id/checkin", authenticate, async (req, res) => {
   try {
-    const registration = await Registration.findById(req.params.id).populate("userId", "name email registrationNumber").populate("competitionId", "title code");
+    const registration = await Registration.findById(req.params.id).populate("userId", "name email registrationNumber").populate("competitionId");
     if (!registration) {
       res.status(404).json({ success: false, message: "Registration record not found." });
+      return;
+    }
+    const comp = registration.competitionId;
+    if (!canMonitorCompetition(req, comp)) {
+      res.status(403).json({ success: false, message: "Not authorized to check in participants for this event." });
       return;
     }
     if (registration.status === "CHECKED_IN" /* CHECKED_IN */) {
@@ -3139,7 +4608,7 @@ router5.post("/:id/checkin", authenticate, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router5.post("/:id/cancel", authenticate, async (req, res) => {
+router6.post("/:id/cancel", authenticate, async (req, res) => {
   try {
     const registration = await Registration.findById(req.params.id);
     if (!registration) {
@@ -3154,20 +4623,40 @@ router5.post("/:id/cancel", authenticate, async (req, res) => {
       res.status(400).json({ success: false, message: "Cannot cancel an already checked-in registration." });
       return;
     }
+    if (registration.status === "CANCELLED" /* CANCELLED */) {
+      res.status(400).json({ success: false, message: "Registration is already cancelled." });
+      return;
+    }
     registration.status = "CANCELLED" /* CANCELLED */;
     registration.remarks = req.body.reason || "Withdrawn by student";
     await registration.save();
-    await Competition.findByIdAndUpdate(registration.competitionId, { $inc: { currentRegistrationsCount: -1 } });
+    if (registration.teamId) {
+      await Team.findByIdAndUpdate(registration.teamId, { $set: { status: "CANCELLED" } });
+    }
+    const updatedComp = await Competition.findOneAndUpdate(
+      { _id: registration.competitionId, currentRegistrationsCount: { $gt: 0 } },
+      { $inc: { currentRegistrationsCount: -1 } },
+      { new: true }
+    );
+    if (updatedComp && updatedComp.isPublished && updatedComp.status === "REGISTRATION_CLOSED" /* REGISTRATION_CLOSED */ && (!updatedComp.registrationCloseDate || /* @__PURE__ */ new Date() <= new Date(updatedComp.registrationCloseDate)) && (!updatedComp.maxRegistrations || updatedComp.currentRegistrationsCount < updatedComp.maxRegistrations)) {
+      updatedComp.status = "REGISTRATION_OPEN" /* REGISTRATION_OPEN */;
+      await updatedComp.save();
+    }
     res.json({ success: true, message: "Registration successfully cancelled.", data: registration });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router5.get(
+router6.get(
   "/competition/:competitionId/export/excel",
   authenticate,
   async (req, res) => {
     try {
+      const competition = await Competition.findById(req.params.competitionId);
+      if (!competition || !canMonitorCompetition(req, competition)) {
+        res.status(403).json({ success: false, message: "Forbidden: Not authorized to export registrations." });
+        return;
+      }
       const registrations = await Registration.find({ competitionId: req.params.competitionId }).populate("userId", "name email registrationNumber phone programme semester").populate("school", "name code");
       const exportRows = registrations.map((r) => ({
         "Registration No": r.registrationNumber,
@@ -3193,11 +4682,16 @@ router5.get(
     }
   }
 );
-router5.get(
+router6.get(
   "/competition/:competitionId/export/csv",
   authenticate,
   async (req, res) => {
     try {
+      const competition = await Competition.findById(req.params.competitionId);
+      if (!competition || !canMonitorCompetition(req, competition)) {
+        res.status(403).json({ success: false, message: "Forbidden: Not authorized to export registrations." });
+        return;
+      }
       const registrations = await Registration.find({ competitionId: req.params.competitionId }).populate("userId", "name email registrationNumber phone programme semester").populate("school", "name code");
       const exportRows = registrations.map((r) => ({
         "Registration No": r.registrationNumber,
@@ -3222,13 +4716,13 @@ router5.get(
     }
   }
 );
-var registrationRoutes_default = router5;
+var registrationRoutes_default = router6;
 
 // server/src/routes/facultyDutyRoutes.ts
-import { Router as Router6 } from "express";
+import { Router as Router7 } from "express";
 init_enums();
-var router6 = Router6();
-router6.get("/", authenticate, async (req, res) => {
+var router7 = Router7();
+router7.get("/", authenticate, async (req, res) => {
   try {
     const { competitionId, facultyId, status, category, priority, date } = req.query;
     const filter = {};
@@ -3249,7 +4743,7 @@ router6.get("/", authenticate, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router6.get("/my", authenticate, async (req, res) => {
+router7.get("/my", authenticate, async (req, res) => {
   try {
     const duties = await FacultyDuty.find({ facultyId: req.user._id }).populate("competitionId", "title code venue proposedDate organizer").populate("assignedBy", "name email designation").sort({ date: 1 });
     res.json({ success: true, count: duties.length, data: duties });
@@ -3257,7 +4751,7 @@ router6.get("/my", authenticate, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router6.post(
+router7.post(
   "/",
   authenticate,
   requireRoles(
@@ -3357,7 +4851,7 @@ router6.post(
     }
   }
 );
-router6.post("/:id/acknowledge", authenticate, async (req, res) => {
+router7.post("/:id/acknowledge", authenticate, async (req, res) => {
   try {
     const duty = await FacultyDuty.findById(req.params.id);
     if (!duty) {
@@ -3376,7 +4870,7 @@ router6.post("/:id/acknowledge", authenticate, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router6.post("/:id/complete", authenticate, async (req, res) => {
+router7.post("/:id/complete", authenticate, async (req, res) => {
   try {
     const { reportText, fileUrls } = req.body;
     const duty = await FacultyDuty.findById(req.params.id).populate("competitionId", "title");
@@ -3417,7 +4911,7 @@ router6.post("/:id/complete", authenticate, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router6.post(
+router7.post(
   "/:id/verify",
   authenticate,
   requireRoles("DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */, "SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */, "COMPETITION_ORGANIZER" /* COMPETITION_ORGANIZER */),
@@ -3456,7 +4950,7 @@ router6.post(
     }
   }
 );
-router6.post("/:id/reassign-request", authenticate, async (req, res) => {
+router7.post("/:id/reassign-request", authenticate, async (req, res) => {
   try {
     const { reason } = req.body;
     if (!reason) {
@@ -3486,7 +4980,7 @@ router6.post("/:id/reassign-request", authenticate, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router6.get("/analytics/overview", authenticate, async (req, res) => {
+router7.get("/analytics/overview", authenticate, async (req, res) => {
   try {
     const totalDuties = await FacultyDuty.countDocuments();
     const completedDuties = await FacultyDuty.countDocuments({
@@ -3522,13 +5016,13 @@ router6.get("/analytics/overview", authenticate, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-var facultyDutyRoutes_default = router6;
+var facultyDutyRoutes_default = router7;
 
 // server/src/routes/judgingRoutes.ts
-import { Router as Router7 } from "express";
+import { Router as Router8 } from "express";
 init_enums();
-var router7 = Router7();
-router7.get("/rubric/:competitionId", authenticate, async (req, res) => {
+var router8 = Router8();
+router8.get("/rubric/:competitionId", authenticate, async (req, res) => {
   try {
     let rubric = await JudgingRubric.findOne({ competitionId: req.params.competitionId });
     if (!rubric) {
@@ -3550,7 +5044,7 @@ router7.get("/rubric/:competitionId", authenticate, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router7.post(
+router8.post(
   "/rubric/:competitionId",
   authenticate,
   requireRoles("DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */, "SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */, "COMPETITION_ORGANIZER" /* COMPETITION_ORGANIZER */, "JUDGE" /* JUDGE */),
@@ -3582,7 +5076,7 @@ router7.post(
     }
   }
 );
-router7.get(
+router8.get(
   "/competition/:competitionId/evaluations",
   authenticate,
   requireRoles("JUDGE" /* JUDGE */, "DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */, "SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */, "COMPETITION_ORGANIZER" /* COMPETITION_ORGANIZER */),
@@ -3612,7 +5106,7 @@ router7.get(
     }
   }
 );
-router7.post(
+router8.post(
   "/score",
   authenticate,
   requireRoles("JUDGE" /* JUDGE */, "DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */),
@@ -3656,13 +5150,13 @@ router7.post(
     }
   }
 );
-var judgingRoutes_default = router7;
+var judgingRoutes_default = router8;
 
 // server/src/routes/resultRoutes.ts
-import { Router as Router8 } from "express";
+import { Router as Router9 } from "express";
 init_enums();
-var router8 = Router8();
-router8.get("/competition/:competitionId", async (req, res) => {
+var router9 = Router9();
+router9.get("/competition/:competitionId", async (req, res) => {
   try {
     const results = await CompetitionResult.find({ competitionId: req.params.competitionId }).populate("registrationId").populate("school", "name code").populate("publishedBy", "name email").sort({ rank: 1 });
     const competition = await Competition.findById(req.params.competitionId).select("title code status prizeDetails");
@@ -3671,7 +5165,7 @@ router8.get("/competition/:competitionId", async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router8.post(
+router9.post(
   "/competition/:competitionId/generate",
   authenticate,
   requireRoles("DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */, "SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */, "COMPETITION_ORGANIZER" /* COMPETITION_ORGANIZER */),
@@ -3753,7 +5247,7 @@ router8.post(
     }
   }
 );
-router8.post(
+router9.post(
   "/competition/:competitionId/publish",
   authenticate,
   requireRoles("DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */),
@@ -3798,7 +5292,7 @@ router8.post(
     }
   }
 );
-router8.post(
+router9.post(
   "/:id/correct",
   authenticate,
   requireRoles("DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */),
@@ -3846,13 +5340,13 @@ router8.post(
     }
   }
 );
-var resultRoutes_default = router8;
+var resultRoutes_default = router9;
 
 // server/src/routes/certificateRoutes.ts
-import { Router as Router9 } from "express";
+import { Router as Router10 } from "express";
 init_enums();
-var router9 = Router9();
-router9.get("/verify/:certNumber", async (req, res) => {
+var router10 = Router10();
+router10.get("/verify/:certNumber", async (req, res) => {
   try {
     const certNumber = req.params.certNumber.toUpperCase().trim();
     const certificate = await Certificate.findOne({
@@ -3897,7 +5391,7 @@ router9.get("/verify/:certNumber", async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router9.get("/my", authenticate, async (req, res) => {
+router10.get("/my", authenticate, async (req, res) => {
   try {
     const certificates = await Certificate.find({ recipientId: req.user._id, isRevoked: false }).populate("competitionId", "title code proposedDate").sort({ issueDate: -1 });
     res.json({ success: true, count: certificates.length, data: certificates });
@@ -3905,7 +5399,7 @@ router9.get("/my", authenticate, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router9.get("/:id", authenticate, async (req, res) => {
+router10.get("/:id", authenticate, async (req, res) => {
   try {
     const certificate = await Certificate.findById(req.params.id).populate("competitionId");
     if (!certificate) {
@@ -3917,7 +5411,7 @@ router9.get("/:id", authenticate, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router9.post(
+router10.post(
   "/issue",
   authenticate,
   requireRoles("DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */),
@@ -4011,12 +5505,12 @@ router9.post(
     }
   }
 );
-var certificateRoutes_default = router9;
+var certificateRoutes_default = router10;
 
 // server/src/routes/notificationRoutes.ts
-import { Router as Router10 } from "express";
-var router10 = Router10();
-router10.get("/", authenticate, async (req, res) => {
+import { Router as Router11 } from "express";
+var router11 = Router11();
+router11.get("/", authenticate, async (req, res) => {
   try {
     const notifications = await Notification.find({ recipient: req.user._id }).sort({ createdAt: -1 }).limit(50);
     const unreadCount = await Notification.countDocuments({ recipient: req.user._id, isRead: false });
@@ -4025,7 +5519,7 @@ router10.get("/", authenticate, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router10.post("/:id/read", authenticate, async (req, res) => {
+router11.post("/:id/read", authenticate, async (req, res) => {
   try {
     const notification = await Notification.findOneAndUpdate(
       { _id: req.params.id, recipient: req.user._id },
@@ -4037,7 +5531,7 @@ router10.post("/:id/read", authenticate, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-router10.post("/read-all", authenticate, async (req, res) => {
+router11.post("/read-all", authenticate, async (req, res) => {
   try {
     await Notification.updateMany({ recipient: req.user._id, isRead: false }, { isRead: true });
     res.json({ success: true, message: "All notifications marked as read." });
@@ -4045,13 +5539,14 @@ router10.post("/read-all", authenticate, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-var notificationRoutes_default = router10;
+var notificationRoutes_default = router11;
 
 // server/src/routes/reportRoutes.ts
-import { Router as Router11 } from "express";
+import { Router as Router12 } from "express";
+init_School();
 init_enums();
-var router11 = Router11();
-router11.get(
+var router12 = Router12();
+router12.get(
   "/dsw-overview",
   authenticate,
   requireRoles("DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */),
@@ -4069,8 +5564,22 @@ router11.get(
         overdueDuties
       ] = await Promise.all([
         Competition.countDocuments(),
-        Competition.countDocuments({ status: { $in: ["SUBMITTED", "UNDER_REVIEW", "REVISION_REQUIRED", "RESUBMITTED"] } }),
-        Competition.countDocuments({ status: "APPROVED" }),
+        Competition.countDocuments({
+          status: {
+            $in: [
+              "SUBMITTED_TO_HOD",
+              "PENDING_HOD_APPROVAL",
+              "PENDING_HOS_APPROVAL",
+              "PENDING_DSW_APPROVAL",
+              "CHANGES_REQUESTED",
+              "SUBMITTED",
+              "UNDER_REVIEW",
+              "REVISION_REQUIRED",
+              "RESUBMITTED"
+            ]
+          }
+        }),
+        Competition.countDocuments({ status: { $in: ["APPROVED_BY_DSW", "APPROVED"] } }),
         Competition.countDocuments({ status: { $in: ["PUBLISHED", "REGISTRATION_OPEN", "IN_PROGRESS"] } }),
         Competition.countDocuments({ status: "COMPLETED" }),
         Registration.countDocuments(),
@@ -4128,7 +5637,7 @@ router11.get(
     }
   }
 );
-router11.get(
+router12.get(
   "/export/:reportType",
   authenticate,
   requireRoles("DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */),
@@ -4199,13 +5708,13 @@ router11.get(
     }
   }
 );
-var reportRoutes_default = router11;
+var reportRoutes_default = router12;
 
 // server/src/routes/auditRoutes.ts
-import { Router as Router12 } from "express";
+import { Router as Router13 } from "express";
 init_enums();
-var router12 = Router12();
-router12.get(
+var router13 = Router13();
+router13.get(
   "/",
   authenticate,
   requireRoles("DSW_ADMIN" /* DSW_ADMIN */, "SUPER_ADMIN" /* SUPER_ADMIN */),
@@ -4240,7 +5749,168 @@ router12.get(
     }
   }
 );
-var auditRoutes_default = router12;
+var auditRoutes_default = router13;
+
+// server/src/routes/monitoringRoutes.ts
+import { Router as Router14 } from "express";
+init_enums();
+var router14 = Router14();
+router14.get("/overview", authenticate, async (req, res) => {
+  try {
+    const roles = req.userRoles || [];
+    const isStaff = isDswRole(roles) || isHosRole(roles) || isHodRole(roles) || roles.includes("FACULTY" /* FACULTY */) || roles.includes("CULTURAL_COORDINATOR" /* CULTURAL_COORDINATOR */) || roles.includes("COMPETITION_ORGANIZER" /* COMPETITION_ORGANIZER */);
+    if (!isStaff) {
+      res.status(403).json({
+        success: false,
+        message: "Forbidden: Students cannot access competition registration monitoring dashboards."
+      });
+      return;
+    }
+    let filter = {};
+    let scopeLabel = "University-Wide (DSW)";
+    if (isDswRole(roles)) {
+      filter = {};
+      scopeLabel = "University-Wide (DSW)";
+    } else if (isHosRole(roles)) {
+      scopeLabel = "School-Level (HOS)";
+      filter = req.user?.school ? {
+        $or: [
+          { organizingSchool: req.user.school },
+          { coOrganizingSchools: req.user.school },
+          { organizer: req.user._id }
+        ]
+      } : { organizer: req.user._id };
+    } else if (isHodRole(roles)) {
+      scopeLabel = `Department-Level (${req.user?.department || "HOD"})`;
+      const deptOr = [{ organizer: req.user._id }];
+      if (req.user?.departmentId) {
+        deptOr.push({ organizingDepartment: req.user.departmentId });
+      }
+      if (req.user?.department && req.user?.school) {
+        deptOr.push({
+          organizingSchool: req.user.school,
+          organizingDepartmentName: req.user.department
+        });
+      }
+      filter = { $or: deptOr };
+    } else {
+      scopeLabel = "My Proposed & Coordinated Events (Faculty)";
+      filter = {
+        $or: [{ organizer: req.user._id }, { facultyCoordinator: req.user._id }]
+      };
+    }
+    const competitions = await Competition.find(filter).populate("organizingSchool", "name code").populate("organizingDepartment", "name code").populate("organizer", "name email designation").sort({ updatedAt: -1 });
+    const compIds = competitions.map((c) => c._id);
+    const regCounts = await Registration.aggregate([
+      {
+        $match: {
+          competitionId: { $in: compIds },
+          status: { $ne: "CANCELLED" /* CANCELLED */ }
+        }
+      },
+      {
+        $group: {
+          _id: "$competitionId",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+    const countMap = /* @__PURE__ */ new Map();
+    regCounts.forEach((row) => countMap.set(row._id.toString(), row.count));
+    const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1e3);
+    const trendAgg = await Registration.aggregate([
+      {
+        $match: {
+          competitionId: { $in: compIds },
+          status: { $ne: "CANCELLED" /* CANCELLED */ },
+          createdAt: { $gte: fourteenDaysAgo }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          registrations: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+    const cards = competitions.map((c) => {
+      const liveRegCount = countMap.get(c._id.toString()) ?? c.currentRegistrationsCount ?? 0;
+      const capacity = c.maxRegistrations || 0;
+      const remainingSeats = capacity > 0 ? Math.max(0, capacity - liveRegCount) : null;
+      const percentageFilled = capacity > 0 ? Math.min(100, Math.round(liveRegCount / capacity * 100)) : 0;
+      const effectiveStatus = computeEffectiveStatus({
+        status: c.status,
+        isPublished: c.isPublished,
+        dswApproval: c.dswApproval,
+        registrationOpenDate: c.registrationOpenDate,
+        registrationCloseDate: c.registrationCloseDate,
+        currentRegistrationsCount: liveRegCount,
+        maxRegistrations: c.maxRegistrations
+      });
+      return {
+        _id: c._id,
+        title: c.title,
+        code: c.code,
+        proposalCode: c.proposalCode,
+        category: c.category,
+        scope: c.scope,
+        organizingSchool: c.organizingSchool,
+        organizingDepartment: c.organizingDepartment,
+        organizingDepartmentName: c.organizingDepartmentName,
+        organizer: c.organizer,
+        status: c.status,
+        effectiveRegistrationStatus: effectiveStatus,
+        currentApprovalLevel: c.currentApprovalLevel || "NONE" /* NONE */,
+        isPublished: c.isPublished,
+        proposedDate: c.proposedDate,
+        registrationOpenDate: c.registrationOpenDate,
+        registrationCloseDate: c.registrationCloseDate,
+        venue: c.venue,
+        maxCapacity: capacity,
+        registrationsReceived: liveRegCount,
+        remainingSeats,
+        percentageFilled
+      };
+    });
+    const pendingStatuses = [
+      "SUBMITTED_TO_HOD" /* SUBMITTED_TO_HOD */,
+      "PENDING_HOD_APPROVAL" /* PENDING_HOD_APPROVAL */,
+      "PENDING_HOS_APPROVAL" /* PENDING_HOS_APPROVAL */,
+      "PENDING_DSW_APPROVAL" /* PENDING_DSW_APPROVAL */,
+      "CHANGES_REQUESTED" /* CHANGES_REQUESTED */,
+      "SUBMITTED" /* SUBMITTED */,
+      "UNDER_REVIEW" /* UNDER_REVIEW */,
+      "REVISION_REQUIRED" /* REVISION_REQUIRED */,
+      "RESUBMITTED" /* RESUBMITTED */
+    ];
+    const summary = {
+      scopeLabel,
+      totalProposed: cards.length,
+      pendingApproval: cards.filter((c) => pendingStatuses.includes(c.status)).length,
+      approvedCompetitions: cards.filter(
+        (c) => ["APPROVED_BY_DSW" /* APPROVED_BY_DSW */, "APPROVED" /* APPROVED */].includes(c.status) || c.isPublished
+      ).length,
+      publishedCompetitions: cards.filter((c) => c.isPublished).length,
+      openRegistrations: cards.filter(
+        (c) => c.effectiveRegistrationStatus === "REGISTRATION_OPEN" /* REGISTRATION_OPEN */
+      ).length,
+      totalRegistrations: cards.reduce((acc, c) => acc + c.registrationsReceived, 0),
+      totalCapacity: cards.filter((c) => c.isPublished).reduce((acc, c) => acc + c.maxCapacity, 0)
+    };
+    res.json({
+      success: true,
+      data: {
+        summary,
+        competitions: cards,
+        trends: trendAgg.map((t) => ({ date: t._id, registrations: t.registrations }))
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+var monitoringRoutes_default = router14;
 
 // server/src/app.ts
 var isConnected = false;
@@ -4252,6 +5922,7 @@ var ensureConnected = async () => {
       console.log("\u{1F331} No users found in database. Automatically running initial CTU seed data...");
       await runSeed();
     }
+    await ensureOrgHierarchySynced();
     isConnected = true;
   }
 };
@@ -4293,6 +5964,7 @@ var createApp = () => {
   const mountRoutes = (prefix) => {
     app2.use(`${prefix}/auth`, authRoutes_default);
     app2.use(`${prefix}/schools`, schoolRoutes_default);
+    app2.use(`${prefix}/departments`, departmentRoutes_default);
     app2.use(`${prefix}/coordinators`, coordinatorRoutes_default);
     app2.use(`${prefix}/competitions`, competitionRoutes_default);
     app2.use(`${prefix}/registrations`, registrationRoutes_default);
@@ -4303,6 +5975,7 @@ var createApp = () => {
     app2.use(`${prefix}/notifications`, notificationRoutes_default);
     app2.use(`${prefix}/reports`, reportRoutes_default);
     app2.use(`${prefix}/audit-logs`, auditRoutes_default);
+    app2.use(`${prefix}/monitoring`, monitoringRoutes_default);
   };
   mountRoutes("/api");
   mountRoutes("");

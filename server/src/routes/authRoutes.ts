@@ -32,7 +32,9 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() }).populate('school');
+    const user = await User.findOne({ email: email.toLowerCase().trim() })
+      .populate('school')
+      .populate('departmentId');
     if (!user) {
       res.status(401).json({ success: false, message: 'Invalid email or password.' });
       return;
@@ -71,6 +73,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
           email: user.email,
           roles: user.roles,
           school: user.school,
+          departmentId: user.departmentId,
           department: user.department,
           programme: user.programme,
           semester: user.semester,
@@ -151,7 +154,10 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
 // GET /api/auth/me
 router.get('/me', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const user = await User.findById(req.userId).populate('school').select('-password');
+    const user = await User.findById(req.userId)
+      .populate('school')
+      .populate('departmentId')
+      .select('-password');
     if (!user) {
       res.status(404).json({ success: false, message: 'User not found.' });
       return;
@@ -171,8 +177,15 @@ router.post('/switch-demo-role', async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    // Find the primary seeded user for this role
-    const user = await User.findOne({ roles: role, isActive: true }).populate('school');
+    // Find the primary seeded user for this role (prefer exact primary role match first)
+    let user = await User.findOne({ 'roles.0': role, isActive: true })
+      .populate('school')
+      .populate('departmentId');
+    if (!user) {
+      user = await User.findOne({ roles: role, isActive: true })
+        .populate('school')
+        .populate('departmentId');
+    }
     if (!user) {
       res.status(404).json({ success: false, message: `No demo user found for role: ${role}` });
       return;
@@ -189,6 +202,7 @@ router.post('/switch-demo-role', async (req: Request, res: Response): Promise<vo
           email: user.email,
           roles: user.roles,
           school: user.school,
+          departmentId: user.departmentId,
           department: user.department,
           programme: user.programme,
           semester: user.semester,

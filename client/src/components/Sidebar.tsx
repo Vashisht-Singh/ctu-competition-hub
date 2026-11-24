@@ -26,7 +26,8 @@ export const Sidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
 
   const isDswOrAdmin = user?.roles?.some((r) => [UserRole.DSW_ADMIN, UserRole.SUPER_ADMIN].includes(r));
-  const isSchoolCoord = user?.roles?.includes(UserRole.SCHOOL_COORDINATOR);
+  const isHos = user?.roles?.some((r) => [UserRole.HOS, UserRole.SCHOOL_COORDINATOR].includes(r));
+  const isHod = user?.roles?.includes(UserRole.HOD);
   const isCulturalCoord = user?.roles?.includes(UserRole.CULTURAL_COORDINATOR);
   const isFaculty = user?.roles?.includes(UserRole.FACULTY);
   const isJudge = user?.roles?.includes(UserRole.JUDGE);
@@ -95,37 +96,54 @@ export const Sidebar: React.FC = () => {
           </div>
         )}
 
-        {/* School Coordinator Navigation */}
-        {!isDswOrAdmin && isSchoolCoord && (
+        {/* HOS / School Head Navigation */}
+        {!isDswOrAdmin && isHos && (
           <div>
             {!collapsed && (
               <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                School Coordinator
+                Head of School (HOS)
               </p>
             )}
             <nav className="space-y-1">
-              <NavLink to="/school/dashboard" className={navItemClass}>
+              <NavLink to="/hos/dashboard" className={navItemClass}>
                 <SchoolIcon className="w-4 h-4 flex-shrink-0" />
-                {!collapsed && <span>School Dashboard</span>}
+                {!collapsed && <span>HOS Approval & Monitor</span>}
               </NavLink>
               <NavLink to="/competitions/create" className={navItemClass}>
                 <PlusCircle className="w-4 h-4 flex-shrink-0" />
-                {!collapsed && <span>Create Proposal</span>}
+                {!collapsed && <span>Propose (to DSW)</span>}
               </NavLink>
               <NavLink to="/faculty-duties" className={navItemClass}>
                 <Briefcase className="w-4 h-4 flex-shrink-0" />
                 {!collapsed && <span>Faculty Duty Allocation</span>}
               </NavLink>
-              <NavLink to="/reports" className={navItemClass}>
-                <BarChart3 className="w-4 h-4 flex-shrink-0" />
-                {!collapsed && <span>School Reports</span>}
+            </nav>
+          </div>
+        )}
+
+        {/* HOD Navigation */}
+        {!isDswOrAdmin && !isHos && isHod && (
+          <div>
+            {!collapsed && (
+              <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Head of Department (HOD)
+              </p>
+            )}
+            <nav className="space-y-1">
+              <NavLink to="/hod/dashboard" className={navItemClass}>
+                <CheckSquare className="w-4 h-4 flex-shrink-0" />
+                {!collapsed && <span>HOD Queue & Monitor</span>}
+              </NavLink>
+              <NavLink to="/competitions/create" className={navItemClass}>
+                <PlusCircle className="w-4 h-4 flex-shrink-0" />
+                {!collapsed && <span>Propose (to HOS)</span>}
               </NavLink>
             </nav>
           </div>
         )}
 
         {/* Cultural Coordinator Navigation */}
-        {!isDswOrAdmin && !isSchoolCoord && isCulturalCoord && (
+        {!isDswOrAdmin && !isHos && !isHod && isCulturalCoord && (
           <div>
             {!collapsed && (
               <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -160,8 +178,14 @@ export const Sidebar: React.FC = () => {
             <nav className="space-y-1">
               <NavLink to="/faculty/dashboard" className={navItemClass}>
                 <Calendar className="w-4 h-4 flex-shrink-0" />
-                {!collapsed && <span>My Duties & Evidence</span>}
+                {!collapsed && <span>Proposals, Monitor & Duties</span>}
               </NavLink>
+              {!isDswOrAdmin && !isHos && !isHod && (
+                <NavLink to="/competitions/create" className={navItemClass}>
+                  <PlusCircle className="w-4 h-4 flex-shrink-0" />
+                  {!collapsed && <span>Create Proposal</span>}
+                </NavLink>
+              )}
             </nav>
           </div>
         )}

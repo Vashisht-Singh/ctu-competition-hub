@@ -28,8 +28,10 @@ export const Navbar: React.FC = () => {
     if (!user) return '/login';
     if (user.roles.includes(UserRole.DSW_ADMIN) || user.roles.includes(UserRole.SUPER_ADMIN)) {
       return '/dsw/dashboard';
-    } else if (user.roles.includes(UserRole.SCHOOL_COORDINATOR)) {
-      return '/school/dashboard';
+    } else if (user.roles.includes(UserRole.HOS) || user.roles.includes(UserRole.SCHOOL_COORDINATOR)) {
+      return '/hos/dashboard';
+    } else if (user.roles.includes(UserRole.HOD)) {
+      return '/hod/dashboard';
     } else if (user.roles.includes(UserRole.CULTURAL_COORDINATOR)) {
       return '/cultural/dashboard';
     } else if (user.roles.includes(UserRole.FACULTY)) {
@@ -49,8 +51,10 @@ export const Navbar: React.FC = () => {
       // Navigate to appropriate role dashboard
       if (role === UserRole.DSW_ADMIN || role === UserRole.SUPER_ADMIN) {
         navigate('/dsw/dashboard');
-      } else if (role === UserRole.SCHOOL_COORDINATOR) {
-        navigate('/school/dashboard');
+      } else if (role === UserRole.HOS || role === UserRole.SCHOOL_COORDINATOR) {
+        navigate('/hos/dashboard');
+      } else if (role === UserRole.HOD) {
+        navigate('/hod/dashboard');
       } else if (role === UserRole.CULTURAL_COORDINATOR) {
         navigate('/cultural/dashboard');
       } else if (role === UserRole.FACULTY) {
@@ -137,11 +141,20 @@ export const Navbar: React.FC = () => {
                 {user?.roles?.includes(UserRole.DSW_ADMIN) && <span className="text-blue-600 text-[10px]">Active</span>}
               </button>
               <button
-                onClick={() => handleRoleSelect(UserRole.SCHOOL_COORDINATOR)}
+                onClick={() => handleRoleSelect(UserRole.HOS)}
                 className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center justify-between text-xs font-semibold text-slate-800"
               >
-                <span>🏫 School Coordinator (SOET)</span>
-                {user?.roles?.includes(UserRole.SCHOOL_COORDINATOR) && <span className="text-blue-600 text-[10px]">Active</span>}
+                <span>🏛️ Head of School / HOS (SOET)</span>
+                {(user?.roles?.includes(UserRole.HOS) || user?.roles?.includes(UserRole.SCHOOL_COORDINATOR)) && (
+                  <span className="text-blue-600 text-[10px]">Active</span>
+                )}
+              </button>
+              <button
+                onClick={() => handleRoleSelect(UserRole.HOD)}
+                className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center justify-between text-xs font-semibold text-slate-800"
+              >
+                <span>📋 Head of Department (HOD CSE)</span>
+                {user?.roles?.includes(UserRole.HOD) && <span className="text-blue-600 text-[10px]">Active</span>}
               </button>
               <button
                 onClick={() => handleRoleSelect(UserRole.CULTURAL_COORDINATOR)}

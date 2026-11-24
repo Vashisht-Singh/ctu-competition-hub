@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import {
+  ApprovalLevel,
   CompetitionCategory,
   CompetitionScope,
   CompetitionStatus,
@@ -37,11 +38,18 @@ export interface ICompetition extends Document {
   category: CompetitionCategory;
   scope: CompetitionScope;
   organizingSchool?: mongoose.Types.ObjectId;
+  organizingDepartment?: mongoose.Types.ObjectId;
+  organizingDepartmentName?: string;
   coOrganizingSchools: mongoose.Types.ObjectId[];
   isCentralDSW: boolean;
   organizer: mongoose.Types.ObjectId;
   facultyCoordinator?: mongoose.Types.ObjectId;
   centralCoordinator?: mongoose.Types.ObjectId;
+  competitionType?: string;
+  targetAudience?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  supportingDocuments: string[];
   bannerUrl?: string;
   objectives?: string;
   rulesAndRegulations?: string;
@@ -50,9 +58,13 @@ export interface ICompetition extends Document {
   proposedDate: Date;
   startDate?: Date;
   endDate?: Date;
+  startTime?: string;
+  endTime?: string;
   registrationOpenDate?: Date;
   registrationCloseDate?: Date;
   venue: string;
+  venueType?: 'CAMPUS' | 'ONLINE' | 'HYBRID';
+  onlinePlatformUrl?: string;
   alternativeVenue?: string;
   durationMinutes?: number;
   reportingTime?: string;
@@ -88,11 +100,21 @@ export interface ICompetition extends Document {
   };
   sponsorshipInfo?: string;
 
-  // Status & Approval
+  // Status & Approval Hierarchy
+  proposalId?: mongoose.Types.ObjectId;
+  proposalCode?: string;
+  creatorRoleAtSubmission?: 'FACULTY' | 'HOD' | 'HOS' | 'DSW';
+  currentApprovalLevel: ApprovalLevel;
+  returnedFromLevel?: ApprovalLevel | null;
+  hodApproval?: { approvedBy?: mongoose.Types.ObjectId; approvedAt?: Date; remarks?: string };
+  hosApproval?: { approvedBy?: mongoose.Types.ObjectId; approvedAt?: Date; remarks?: string };
+  dswApproval?: { approvedBy?: mongoose.Types.ObjectId; approvedAt?: Date; remarks?: string };
   status: CompetitionStatus;
   isPublished: boolean;
   publishedAt?: Date;
   submissionRemarks?: string;
+  hodRemarks?: string;
+  hosRemarks?: string;
   dswRemarks?: string;
   rejectionReason?: string;
   revisionNotes?: string;
@@ -120,11 +142,18 @@ const CompetitionSchema = new Schema<ICompetition>(
       index: true,
     },
     organizingSchool: { type: Schema.Types.ObjectId, ref: 'School', index: true },
+    organizingDepartment: { type: Schema.Types.ObjectId, ref: 'Department', index: true },
+    organizingDepartmentName: { type: String, trim: true },
     coOrganizingSchools: [{ type: Schema.Types.ObjectId, ref: 'School' }],
     isCentralDSW: { type: Boolean, default: false },
     organizer: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     facultyCoordinator: { type: Schema.Types.ObjectId, ref: 'User' },
     centralCoordinator: { type: Schema.Types.ObjectId, ref: 'User' },
+    competitionType: { type: String, trim: true },
+    targetAudience: { type: String, trim: true },
+    contactEmail: { type: String, trim: true },
+    contactPhone: { type: String, trim: true },
+    supportingDocuments: [{ type: String }],
     bannerUrl: { type: String },
     objectives: { type: String, trim: true },
     rulesAndRegulations: { type: String, trim: true },
@@ -132,9 +161,13 @@ const CompetitionSchema = new Schema<ICompetition>(
     proposedDate: { type: Date, required: true, index: true },
     startDate: { type: Date },
     endDate: { type: Date },
+    startTime: { type: String, default: '09:00 AM' },
+    endTime: { type: String, default: '05:00 PM' },
     registrationOpenDate: { type: Date },
     registrationCloseDate: { type: Date },
     venue: { type: String, required: true, trim: true },
+    venueType: { type: String, enum: ['CAMPUS', 'ONLINE', 'HYBRID'], default: 'CAMPUS' },
+    onlinePlatformUrl: { type: String, trim: true },
     alternativeVenue: { type: String, trim: true },
     durationMinutes: { type: Number, default: 120 },
     reportingTime: { type: String, default: '09:00 AM' },
@@ -187,6 +220,38 @@ const CompetitionSchema = new Schema<ICompetition>(
     },
     sponsorshipInfo: { type: String },
 
+    proposalId: { type: Schema.Types.ObjectId, ref: 'CompetitionProposal', index: true },
+    proposalCode: { type: String, trim: true },
+    creatorRoleAtSubmission: {
+      type: String,
+      enum: ['FACULTY', 'HOD', 'HOS', 'DSW'],
+    },
+    currentApprovalLevel: {
+      type: String,
+      enum: Object.values(ApprovalLevel),
+      default: ApprovalLevel.NONE,
+      index: true,
+    },
+    returnedFromLevel: {
+      type: String,
+      enum: [...Object.values(ApprovalLevel), null],
+      default: null,
+    },
+    hodApproval: {
+      approvedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+      approvedAt: { type: Date },
+      remarks: { type: String, trim: true },
+    },
+    hosApproval: {
+      approvedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+      approvedAt: { type: Date },
+      remarks: { type: String, trim: true },
+    },
+    dswApproval: {
+      approvedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+      approvedAt: { type: Date },
+      remarks: { type: String, trim: true },
+    },
     status: {
       type: String,
       enum: Object.values(CompetitionStatus),
@@ -196,6 +261,8 @@ const CompetitionSchema = new Schema<ICompetition>(
     isPublished: { type: Boolean, default: false, index: true },
     publishedAt: { type: Date },
     submissionRemarks: { type: String, trim: true },
+    hodRemarks: { type: String, trim: true },
+    hosRemarks: { type: String, trim: true },
     dswRemarks: { type: String, trim: true },
     rejectionReason: { type: String, trim: true },
     revisionNotes: { type: String, trim: true },

@@ -2,6 +2,28 @@ import { Response, NextFunction } from 'express';
 import { AuthRequest } from './auth.js';
 import { UserRole } from '../types/enums.js';
 
+export const isDswRole = (roles: UserRole[] = []): boolean =>
+  roles.includes(UserRole.SUPER_ADMIN) || roles.includes(UserRole.DSW_ADMIN);
+
+export const isHosRole = (roles: UserRole[] = []): boolean =>
+  roles.includes(UserRole.HOS) || roles.includes(UserRole.SCHOOL_COORDINATOR);
+
+export const isHodRole = (roles: UserRole[] = []): boolean =>
+  roles.includes(UserRole.HOD);
+
+export const isFacultyOrCoordRole = (roles: UserRole[] = []): boolean =>
+  roles.includes(UserRole.FACULTY) ||
+  roles.includes(UserRole.CULTURAL_COORDINATOR) ||
+  roles.includes(UserRole.COMPETITION_ORGANIZER);
+
+export const getUserHierarchyOrigin = (roles: UserRole[] = []): 'DSW' | 'HOS' | 'HOD' | 'FACULTY' | null => {
+  if (isDswRole(roles)) return 'DSW';
+  if (isHosRole(roles)) return 'HOS';
+  if (isHodRole(roles)) return 'HOD';
+  if (isFacultyOrCoordRole(roles)) return 'FACULTY';
+  return null;
+};
+
 export const requireRoles = (...allowedRoles: UserRole[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user || !req.userRoles) {
@@ -10,8 +32,7 @@ export const requireRoles = (...allowedRoles: UserRole[]) => {
     }
 
     // SUPER_ADMIN and DSW_ADMIN have global university-wide access
-    const hasGlobalAccess = req.userRoles.includes(UserRole.SUPER_ADMIN) || req.userRoles.includes(UserRole.DSW_ADMIN);
-    if (hasGlobalAccess) {
+    if (isDswRole(req.userRoles)) {
       return next();
     }
 
@@ -24,6 +45,24 @@ export const requireRoles = (...allowedRoles: UserRole[]) => {
       return;
     }
 
+    next();
+  };
+};
+
+export const requireExactRoles = (...allowedRoles: UserRole[]) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!req.user || !req.userRoles) {
+      res.status(401).json({ success: false, message: 'Unauthorized. Authentication required.' });
+      return;
+    }
+    const hasAllowedRole = req.userRoles.some((role) => allowedRoles.includes(role));
+    if (!hasAllowedRole) {
+      res.status(403).json({
+        success: false,
+        message: `Forbidden. Requires one of roles: [${allowedRoles.join(', ')}]`,
+      });
+      return;
+    }
     next();
   };
 };

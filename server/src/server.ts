@@ -1,4 +1,4 @@
-import app, { ensureConnected } from './app.js';
+import handler, { app, ensureConnected } from './app.js';
 import { disconnectDB } from './config/db.js';
 import { ENV } from './config/env.js';
 
@@ -37,4 +37,5 @@ if (!process.env.VERCEL) {
   startServer();
 }
 
-export default app;
+export { app, ensureConnected };
+export default handler;

@@ -14,13 +14,24 @@ export const Badge: React.FC<BadgeProps> = ({ status, size = 'sm', className = '
   // Competition Statuses
   if (status === CompetitionStatus.PUBLISHED || status === CompetitionStatus.REGISTRATION_OPEN) {
     style = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-  } else if (status === CompetitionStatus.APPROVED) {
+  } else if (status === CompetitionStatus.REGISTRATION_CLOSED) {
+    style = 'bg-slate-200 text-slate-700 border-slate-300';
+  } else if (status === CompetitionStatus.APPROVED || status === CompetitionStatus.APPROVED_BY_DSW) {
     style = 'bg-blue-50 text-blue-700 border-blue-200';
-  } else if (status === CompetitionStatus.SUBMITTED || status === CompetitionStatus.RESUBMITTED) {
+  } else if (
+    status === CompetitionStatus.SUBMITTED ||
+    status === CompetitionStatus.RESUBMITTED ||
+    status === CompetitionStatus.SUBMITTED_TO_HOD ||
+    status === CompetitionStatus.PENDING_HOD_APPROVAL
+  ) {
     style = 'bg-amber-50 text-amber-700 border-amber-200';
-  } else if (status === CompetitionStatus.UNDER_REVIEW) {
+  } else if (
+    status === CompetitionStatus.UNDER_REVIEW ||
+    status === CompetitionStatus.PENDING_HOS_APPROVAL ||
+    status === CompetitionStatus.PENDING_DSW_APPROVAL
+  ) {
     style = 'bg-indigo-50 text-indigo-700 border-indigo-200';
-  } else if (status === CompetitionStatus.REVISION_REQUIRED) {
+  } else if (status === CompetitionStatus.REVISION_REQUIRED || status === CompetitionStatus.CHANGES_REQUESTED) {
     style = 'bg-orange-50 text-orange-700 border-orange-200';
   } else if (status === CompetitionStatus.DRAFT) {
     style = 'bg-slate-100 text-slate-600 border-slate-200';

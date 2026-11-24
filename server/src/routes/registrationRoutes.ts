@@ -1,198 +1,417 @@
-import { Router, Request, Response } from 'express';
-import { Registration, IRegistration } from '../models/Registration.js';
+import { Router, Response } from 'express';
+import { Registration } from '../models/Registration.js';
+import { Team } from '../models/Team.js';
 import { Competition } from '../models/Competition.js';
-import { User } from '../models/User.js';
+import { CompetitionProposal } from '../models/CompetitionProposal.js';
 import { authenticate, AuthRequest } from '../middleware/auth.js';
-import { requireRoles } from '../middleware/rbac.js';
+import {
+  requireExactRoles,
+  isDswRole,
+  isHosRole,
+  isHodRole,
+} from '../middleware/rbac.js';
 import { UserRole, RegistrationStatus, CompetitionStatus } from '../types/enums.js';
 import { generateQRCodeDataUrl } from '../services/qrService.js';
 import { generateExcelBuffer, generateCsvBuffer } from '../services/exportService.js';
 import { logAudit } from '../services/auditService.js';
-import { sendNotification } from '../services/notificationService.js';
+import {
+  sendNotification,
+  broadcastToRoles,
+  notifyDepartmentHods,
+  notifySchoolHos,
+} from '../services/notificationService.js';
+import { computeEffectiveStatus } from '../services/hierarchyService.js';
 
 const router = Router();
 
-// POST /api/registrations - Register for competition
-router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const { competitionId, participantType, teamName, teamMembers, customFieldResponses } = req.body;
-    const userId = req.user!._id;
+/**
+ * Checks whether the authenticated user has monitoring/export authority for a given competition.
+ */
+function canMonitorCompetition(req: AuthRequest, competition: any): boolean {
+  const roles = req.userRoles || [];
+  if (isDswRole(roles)) return true;
 
-    if (!competitionId) {
-      res.status(400).json({ success: false, message: 'Competition ID is required.' });
-      return;
-    }
-
-    const competition = await Competition.findById(competitionId);
-    if (!competition) {
-      res.status(404).json({ success: false, message: 'Competition not found.' });
-      return;
-    }
-
-    // Check if competition is open for registration
-    if (!competition.isPublished || competition.status !== CompetitionStatus.REGISTRATION_OPEN) {
-      res.status(400).json({
-        success: false,
-        message: `Registrations are not open for this competition. Current status: ${competition.status}`,
-      });
-      return;
-    }
-
-    // Check deadline
-    if (competition.registrationCloseDate && new Date() > new Date(competition.registrationCloseDate)) {
-      res.status(400).json({ success: false, message: 'Registration deadline has passed.' });
-      return;
-    }
-
-    // Check duplicate registration
-    const existing = await Registration.findOne({ competitionId, userId });
-    if (existing && existing.status !== RegistrationStatus.CANCELLED) {
-      res.status(409).json({
-        success: false,
-        message: `You are already registered for this competition (Reg #: ${existing.registrationNumber}).`,
-      });
-      return;
-    }
-
-    // Eligibility validation: School eligibility
-    if (competition.eligibleSchools && competition.eligibleSchools.length > 0) {
-      const userSchool = req.user?.school?.toString();
-      const isEligibleSchool = competition.eligibleSchools.some((s) => s.toString() === userSchool);
-      if (!isEligibleSchool) {
-        res.status(403).json({
-          success: false,
-          message: 'Your school is not eligible to participate in this competition according to the defined scope.',
-        });
-        return;
-      }
-    }
-
-    // Eligibility validation: Programmes
-    if (competition.eligibleProgrammes && competition.eligibleProgrammes.length > 0) {
-      if (req.user?.programme && !competition.eligibleProgrammes.includes(req.user.programme)) {
-        res.status(403).json({
-          success: false,
-          message: `Your programme (${req.user.programme}) is not among the eligible programmes.`,
-        });
-        return;
-      }
-    }
-
-    // Eligibility validation: Semesters
-    if (competition.eligibleSemesters && competition.eligibleSemesters.length > 0) {
-      if (req.user?.semester && !competition.eligibleSemesters.includes(req.user.semester)) {
-        res.status(403).json({
-          success: false,
-          message: `Your semester (${req.user.semester}) is not eligible for this competition.`,
-        });
-        return;
-      }
-    }
-
-    // Capacity & Waitlist check
-    const currentConfirmed = await Registration.countDocuments({
-      competitionId,
-      status: { $in: [RegistrationStatus.CONFIRMED, RegistrationStatus.CHECKED_IN] },
-    });
-
-    let regStatus = RegistrationStatus.CONFIRMED;
-    if (competition.maxRegistrations && currentConfirmed >= competition.maxRegistrations) {
-      regStatus = RegistrationStatus.WAITLISTED;
-    }
-
-    // Validate team requirements
-    if (competition.participationType === 'TEAM' || participantType === 'TEAM') {
-      if (!teamName || teamName.trim().length === 0) {
-        res.status(400).json({ success: false, message: 'Team name is required for team participation.' });
-        return;
-      }
-      const membersCount = 1 + (teamMembers ? teamMembers.length : 0);
-      if (competition.minTeamSize && membersCount < competition.minTeamSize) {
-        res.status(400).json({
-          success: false,
-          message: `Minimum team size is ${competition.minTeamSize} members. You provided ${membersCount}.`,
-        });
-        return;
-      }
-      if (competition.maxTeamSize && membersCount > competition.maxTeamSize) {
-        res.status(400).json({
-          success: false,
-          message: `Maximum team size is ${competition.maxTeamSize} members. You provided ${membersCount}.`,
-        });
-        return;
-      }
-    }
-
-    // Generate unique registration number: CTU-REG-2026-XXXX
-    const count = await Registration.countDocuments();
-    const registrationNumber = `CTU-REG-2026-${String(count + 1001).padStart(5, '0')}`;
-
-    // Generate QR payload
-    const qrPayload = JSON.stringify({
-      regNo: registrationNumber,
-      comp: competition.code,
-      user: req.user?.name,
-      studentId: req.user?.registrationNumber,
-      issuedAt: new Date().toISOString(),
-    });
-    const qrCodeData = await generateQRCodeDataUrl(qrPayload);
-
-    const registration = new Registration({
-      registrationNumber,
-      competitionId,
-      participantType: participantType || competition.participationType || 'INDIVIDUAL',
-      userId,
-      school: req.user?.school,
-      teamName: teamName?.trim(),
-      teamMembers: teamMembers || [],
-      status: regStatus,
-      qrCodeData,
-      customFieldResponses,
-    });
-
-    await registration.save();
-
-    // Increment competition counter
-    await Competition.findByIdAndUpdate(competitionId, { $inc: { currentRegistrationsCount: 1 } });
-
-    await logAudit({
-      user: req.user!._id,
-      userName: req.user!.name,
-      role: req.user!.roles[0],
-      action: 'REGISTER_COMPETITION',
-      resourceType: 'REGISTRATION',
-      resourceId: registration._id.toString(),
-      newState: { registrationNumber, status: regStatus, competitionTitle: competition.title },
-      ipAddress: req.ip,
-    });
-
-    await sendNotification({
-      recipient: userId,
-      title: regStatus === RegistrationStatus.CONFIRMED ? 'Registration Confirmed!' : 'Waitlisted for Competition',
-      message: `Your registration (${registrationNumber}) for "${competition.title}" has been ${regStatus.toLowerCase()}.`,
-      type: regStatus === RegistrationStatus.CONFIRMED ? 'SUCCESS' : 'WARNING',
-      actionUrl: `/student/registrations`,
-    });
-
-    res.status(201).json({
-      success: true,
-      message:
-        regStatus === RegistrationStatus.CONFIRMED
-          ? 'Registration successful! Your digital badge and QR code are ready.'
-          : 'Competition capacity reached. You have been placed on the waiting list.',
-      data: registration,
-    });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  if (
+    competition.organizer?.toString() === req.user!._id.toString() ||
+    competition.facultyCoordinator?.toString() === req.user!._id.toString()
+  ) {
+    return true;
   }
-});
 
-// GET /api/registrations/my - Current student registrations
+  if (isHosRole(roles) && req.user?.school && competition.organizingSchool) {
+    if (req.user.school.toString() === competition.organizingSchool.toString()) return true;
+  }
+
+  if (isHodRole(roles)) {
+    if (
+      req.user?.departmentId &&
+      competition.organizingDepartment &&
+      req.user.departmentId.toString() === competition.organizingDepartment.toString()
+    ) {
+      return true;
+    }
+    if (
+      req.user?.school &&
+      competition.organizingSchool &&
+      req.user.school.toString() === competition.organizingSchool.toString() &&
+      req.user?.department &&
+      competition.organizingDepartmentName === req.user.department
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// POST /api/registrations - Student registration with atomic capacity reservation & team support
+router.post(
+  '/',
+  authenticate,
+  requireExactRoles(UserRole.STUDENT),
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const { competitionId, participantType, teamName, teamMembers, customFieldResponses } = req.body;
+      const userId = req.user!._id;
+
+      if (!competitionId) {
+        res.status(400).json({ success: false, message: 'Competition ID is required.' });
+        return;
+      }
+
+      const competition = await Competition.findById(competitionId);
+      if (!competition) {
+        res.status(404).json({ success: false, message: 'Competition not found.' });
+        return;
+      }
+
+      // 1. DSW approval & publication check
+      if (!competition.isPublished) {
+        res.status(403).json({
+          success: false,
+          message: 'Registration is blocked: this competition has not been approved and published by DSW.',
+        });
+        return;
+      }
+
+      const now = new Date();
+
+      // 2. Schedule opening & closing window enforcement
+      if (competition.registrationOpenDate && now < new Date(competition.registrationOpenDate)) {
+        res.status(400).json({
+          success: false,
+          message: `Registration is not open yet. It opens on ${new Date(competition.registrationOpenDate).toLocaleString()}.`,
+        });
+        return;
+      }
+
+      if (competition.registrationCloseDate && now > new Date(competition.registrationCloseDate)) {
+        if (competition.status === CompetitionStatus.REGISTRATION_OPEN) {
+          competition.status = CompetitionStatus.REGISTRATION_CLOSED;
+          await competition.save();
+        }
+        res.status(400).json({ success: false, message: 'Registration deadline has passed.' });
+        return;
+      }
+
+      const effectiveStatus = computeEffectiveStatus(competition);
+      if (effectiveStatus !== CompetitionStatus.REGISTRATION_OPEN) {
+        res.status(400).json({
+          success: false,
+          message: `Registrations are currently closed for this competition (Status: ${effectiveStatus.replace(/_/g, ' ')}).`,
+        });
+        return;
+      }
+
+      // 3. Duplicate registration check
+      const existing = await Registration.findOne({ competitionId, userId });
+      if (existing && existing.status !== RegistrationStatus.CANCELLED) {
+        res.status(409).json({
+          success: false,
+          message: `You are already registered for this competition (Reg #: ${existing.registrationNumber}).`,
+        });
+        return;
+      }
+
+      // 4. Eligibility validation (School, Programme, Semester)
+      if (competition.eligibleSchools && competition.eligibleSchools.length > 0) {
+        const userSchool = req.user?.school?.toString();
+        const isEligibleSchool = userSchool && competition.eligibleSchools.some((s) => s.toString() === userSchool);
+        if (!isEligibleSchool) {
+          res.status(403).json({
+            success: false,
+            message: 'Your school is not eligible to participate in this competition.',
+          });
+          return;
+        }
+      }
+
+      if (competition.eligibleProgrammes && competition.eligibleProgrammes.length > 0) {
+        if (req.user?.programme && !competition.eligibleProgrammes.includes(req.user.programme)) {
+          res.status(403).json({
+            success: false,
+            message: `Your programme (${req.user.programme}) is not eligible for this competition.`,
+          });
+          return;
+        }
+      }
+
+      if (competition.eligibleSemesters && competition.eligibleSemesters.length > 0) {
+        if (req.user?.semester && !competition.eligibleSemesters.includes(req.user.semester)) {
+          res.status(403).json({
+            success: false,
+            message: `Your semester (${req.user.semester}) is not eligible for this competition.`,
+          });
+          return;
+        }
+      }
+
+      // 5. Team validation
+      const isTeamMode = competition.participationType === 'TEAM' || participantType === 'TEAM';
+      const cleanedMembers = Array.isArray(teamMembers)
+        ? teamMembers.filter((m: any) => m && m.name?.trim() && m.email?.trim())
+        : [];
+
+      if (isTeamMode) {
+        if (!teamName || teamName.trim().length === 0) {
+          res.status(400).json({ success: false, message: 'Team name is required for team participation.' });
+          return;
+        }
+        const membersCount = 1 + cleanedMembers.length;
+        if (competition.minTeamSize && membersCount < competition.minTeamSize) {
+          res.status(400).json({
+            success: false,
+            message: `Minimum team size is ${competition.minTeamSize} members (including leader). Provided: ${membersCount}.`,
+          });
+          return;
+        }
+        if (competition.maxTeamSize && membersCount > competition.maxTeamSize) {
+          res.status(400).json({
+            success: false,
+            message: `Maximum team size is ${competition.maxTeamSize} members (including leader). Provided: ${membersCount}.`,
+          });
+          return;
+        }
+
+        // Prevent duplicate emails inside team or existing active team with same name
+        const memberEmails = cleanedMembers.map((m: any) => m.email.toLowerCase().trim());
+        const leaderEmail = req.user!.email.toLowerCase().trim();
+        if (memberEmails.includes(leaderEmail) || new Set(memberEmails).size !== memberEmails.length) {
+          res.status(400).json({
+            success: false,
+            message: 'Team members must have unique email addresses and cannot duplicate the team leader.',
+          });
+          return;
+        }
+
+        const existingTeam = await Team.findOne({
+          competitionId,
+          teamName: teamName.trim(),
+          status: 'ACTIVE',
+        });
+        if (existingTeam) {
+          res.status(409).json({
+            success: false,
+            message: `A team named "${teamName.trim()}" is already registered for this competition.`,
+          });
+          return;
+        }
+      }
+
+      // 6. Atomic capacity check & increment on Competition to prevent race-condition overbooking
+      const reservedComp = await Competition.findOneAndUpdate(
+        {
+          _id: competitionId,
+          isPublished: true,
+          status: CompetitionStatus.REGISTRATION_OPEN,
+          $or: [
+            { maxRegistrations: { $lte: 0 } },
+            { maxRegistrations: { $exists: false } },
+            { $expr: { $lt: ['$currentRegistrationsCount', '$maxRegistrations'] } },
+          ],
+        },
+        { $inc: { currentRegistrationsCount: 1 } },
+        { new: true }
+      );
+
+      if (!reservedComp) {
+        // Capacity reached or status transitioned concurrently
+        if (competition.maxRegistrations > 0 && competition.currentRegistrationsCount >= competition.maxRegistrations) {
+          await Competition.findByIdAndUpdate(competitionId, {
+            $set: { status: CompetitionStatus.REGISTRATION_CLOSED },
+          });
+        }
+        res.status(400).json({
+          success: false,
+          message: 'Registration failed: competition capacity has been reached or registration just closed.',
+        });
+        return;
+      }
+
+      let registration: any;
+      try {
+        // If student had a cancelled registration earlier, remove it cleanly before inserting new active one
+        if (existing && existing.status === RegistrationStatus.CANCELLED) {
+          await Registration.deleteOne({ _id: existing._id });
+        }
+
+        const randomSuffix = Math.floor(10000 + Math.random() * 90000);
+        const registrationNumber = `CTU-REG-${new Date().getFullYear()}-${randomSuffix}`;
+
+        const qrPayload = JSON.stringify({
+          regNo: registrationNumber,
+          comp: competition.code,
+          user: req.user?.name,
+          studentId: req.user?.registrationNumber,
+          issuedAt: now.toISOString(),
+        });
+        const qrCodeData = await generateQRCodeDataUrl(qrPayload);
+
+        registration = new Registration({
+          registrationNumber,
+          competitionId,
+          participantType: isTeamMode ? 'TEAM' : 'INDIVIDUAL',
+          userId,
+          school: req.user?.school,
+          departmentId: req.user?.departmentId,
+          departmentName: req.user?.department,
+          teamName: isTeamMode ? teamName.trim() : undefined,
+          teamMembers: isTeamMode ? cleanedMembers : [],
+          status: RegistrationStatus.CONFIRMED,
+          qrCodeData,
+          customFieldResponses,
+        });
+
+        await registration.save();
+
+        if (isTeamMode) {
+          const team = await Team.create({
+            competitionId,
+            registrationId: registration._id,
+            teamName: teamName.trim(),
+            leaderId: userId,
+            members: [
+              {
+                name: req.user!.name,
+                email: req.user!.email,
+                studentId: req.user!.registrationNumber,
+                phone: req.user!.phone,
+                programme: req.user!.programme,
+                semester: req.user!.semester,
+              },
+              ...cleanedMembers,
+            ],
+            teamSize: 1 + cleanedMembers.length,
+            status: 'ACTIVE',
+          });
+          registration.teamId = team._id;
+          await registration.save();
+        }
+      } catch (saveErr) {
+        // Atomic rollback of reserved seat on any validation/save failure
+        await Competition.findByIdAndUpdate(competitionId, {
+          $inc: { currentRegistrationsCount: -1 },
+        });
+        throw saveErr;
+      }
+
+      // 7. Auto-close registration if capacity just filled up
+      if (
+        reservedComp.maxRegistrations > 0 &&
+        reservedComp.currentRegistrationsCount >= reservedComp.maxRegistrations
+      ) {
+        await Competition.findByIdAndUpdate(competitionId, {
+          $set: { status: CompetitionStatus.REGISTRATION_CLOSED },
+        });
+        await CompetitionProposal.findOneAndUpdate(
+          { competitionId },
+          { $set: { status: CompetitionStatus.REGISTRATION_CLOSED } }
+        );
+        await broadcastToRoles(
+          [UserRole.DSW_ADMIN, UserRole.SUPER_ADMIN],
+          `Capacity Reached: ${competition.title}`,
+          `"${competition.title}" reached 100% capacity (${reservedComp.currentRegistrationsCount}/${reservedComp.maxRegistrations}) and automatically closed registrations.`,
+          `/competitions/${competition._id}`,
+          'WARNING'
+        );
+      } else if (
+        reservedComp.maxRegistrations > 0 &&
+        reservedComp.currentRegistrationsCount / reservedComp.maxRegistrations >= 0.8
+      ) {
+        await broadcastToRoles(
+          [UserRole.DSW_ADMIN],
+          `Nearing Capacity: ${competition.title}`,
+          `"${competition.title}" is now ${Math.round((reservedComp.currentRegistrationsCount / reservedComp.maxRegistrations) * 100)}% full (${reservedComp.currentRegistrationsCount}/${reservedComp.maxRegistrations}).`,
+          `/reports`,
+          'INFO'
+        );
+      }
+
+      await logAudit({
+        user: req.user!._id,
+        userName: req.user!.name,
+        role: req.user!.roles[0],
+        action: 'REGISTER_COMPETITION',
+        resourceType: 'REGISTRATION',
+        resourceId: registration._id.toString(),
+        newState: {
+          registrationNumber: registration.registrationNumber,
+          status: RegistrationStatus.CONFIRMED,
+          competitionTitle: competition.title,
+        },
+        ipAddress: req.ip,
+      });
+
+      await sendNotification({
+        recipient: userId,
+        title: 'Registration Confirmed!',
+        message: `Your registration (${registration.registrationNumber}) for "${competition.title}" is confirmed.`,
+        type: 'SUCCESS',
+        actionUrl: `/student/registrations`,
+      });
+
+      // Keep hierarchy informed of active registration progress milestones (every 5th or first registration)
+      if (reservedComp.currentRegistrationsCount === 1 || reservedComp.currentRegistrationsCount % 5 === 0) {
+        await sendNotification({
+          recipient: competition.organizer,
+          title: `Registration Update: ${competition.title}`,
+          message: `Current registrations: ${reservedComp.currentRegistrationsCount} / ${reservedComp.maxRegistrations || '∞'}.`,
+          type: 'INFO',
+          actionUrl: `/competitions/${competition._id}`,
+        });
+        await notifyDepartmentHods(
+          competition.organizingDepartment,
+          competition.organizingSchool,
+          `Department Registration Update: ${competition.title}`,
+          `Registrations reached ${reservedComp.currentRegistrationsCount} / ${reservedComp.maxRegistrations || '∞'}.`,
+          `/hod/dashboard`
+        );
+        await notifySchoolHos(
+          competition.organizingSchool,
+          `School Registration Update: ${competition.title}`,
+          `Registrations reached ${reservedComp.currentRegistrationsCount} / ${reservedComp.maxRegistrations || '∞'}.`,
+          `/hos/dashboard`
+        );
+      }
+
+      res.status(201).json({
+        success: true,
+        message: 'Registration successful! Your digital badge and QR code are ready.',
+        data: registration,
+      });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+);
+
+// GET /api/registrations/my - Current student registrations (Student only sees own)
 router.get('/my', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const registrations = await Registration.find({ userId: req.user!._id })
       .populate('competitionId')
       .populate('school', 'name code')
+      .populate('teamId')
       .sort({ createdAt: -1 });
 
     res.json({ success: true, count: registrations.length, data: registrations });
@@ -201,17 +420,31 @@ router.get('/my', authenticate, async (req: AuthRequest, res: Response): Promise
   }
 });
 
-// GET /api/registrations/competition/:competitionId - Registrations for a competition
+// GET /api/registrations/competition/:competitionId - Registrations for a competition (Authority-scoped; Students denied)
 router.get(
   '/competition/:competitionId',
   authenticate,
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+      const competition = await Competition.findById(req.params.competitionId);
+      if (!competition) {
+        res.status(404).json({ success: false, message: 'Competition not found.' });
+        return;
+      }
+
+      if (!canMonitorCompetition(req, competition)) {
+        res.status(403).json({
+          success: false,
+          message: 'Forbidden: You do not have authority to view registrations for this competition.',
+        });
+        return;
+      }
+
       const { status, search, page = 1, limit = 50 } = req.query;
       const filter: any = { competitionId: req.params.competitionId };
 
-      if (status) filter.status = status;
-      if (search) {
+      if (status && status !== 'undefined') filter.status = status;
+      if (search && search !== 'undefined') {
         filter.$or = [
           { registrationNumber: { $regex: String(search), $options: 'i' } },
           { teamName: { $regex: String(search), $options: 'i' } },
@@ -223,6 +456,7 @@ router.get(
         Registration.find(filter)
           .populate('userId', 'name email registrationNumber phone department programme semester avatarUrl')
           .populate('school', 'name code')
+          .populate('teamId')
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(Number(limit)),
@@ -242,15 +476,21 @@ router.get(
   }
 );
 
-// POST /api/registrations/:id/checkin - Participant Check-in (by QR or manual)
+// POST /api/registrations/:id/checkin - Participant Check-in (Authority-scoped)
 router.post('/:id/checkin', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const registration = await Registration.findById(req.params.id)
       .populate('userId', 'name email registrationNumber')
-      .populate('competitionId', 'title code');
+      .populate('competitionId');
 
     if (!registration) {
       res.status(404).json({ success: false, message: 'Registration record not found.' });
+      return;
+    }
+
+    const comp = registration.competitionId as any;
+    if (!canMonitorCompetition(req, comp)) {
+      res.status(403).json({ success: false, message: 'Not authorized to check in participants for this event.' });
       return;
     }
 
@@ -289,7 +529,7 @@ router.post('/:id/checkin', authenticate, async (req: AuthRequest, res: Response
   }
 });
 
-// POST /api/registrations/:id/cancel - Student self-cancellation
+// POST /api/registrations/:id/cancel - Student self-cancellation (with atomic decrement & reopen check)
 router.post('/:id/cancel', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const registration = await Registration.findById(req.params.id);
@@ -308,11 +548,35 @@ router.post('/:id/cancel', authenticate, async (req: AuthRequest, res: Response)
       return;
     }
 
+    if (registration.status === RegistrationStatus.CANCELLED) {
+      res.status(400).json({ success: false, message: 'Registration is already cancelled.' });
+      return;
+    }
+
     registration.status = RegistrationStatus.CANCELLED;
     registration.remarks = req.body.reason || 'Withdrawn by student';
     await registration.save();
 
-    await Competition.findByIdAndUpdate(registration.competitionId, { $inc: { currentRegistrationsCount: -1 } });
+    if (registration.teamId) {
+      await Team.findByIdAndUpdate(registration.teamId, { $set: { status: 'CANCELLED' } });
+    }
+
+    const updatedComp = await Competition.findOneAndUpdate(
+      { _id: registration.competitionId, currentRegistrationsCount: { $gt: 0 } },
+      { $inc: { currentRegistrationsCount: -1 } },
+      { new: true }
+    );
+
+    if (
+      updatedComp &&
+      updatedComp.isPublished &&
+      updatedComp.status === CompetitionStatus.REGISTRATION_CLOSED &&
+      (!updatedComp.registrationCloseDate || new Date() <= new Date(updatedComp.registrationCloseDate)) &&
+      (!updatedComp.maxRegistrations || updatedComp.currentRegistrationsCount < updatedComp.maxRegistrations)
+    ) {
+      updatedComp.status = CompetitionStatus.REGISTRATION_OPEN;
+      await updatedComp.save();
+    }
 
     res.json({ success: true, message: 'Registration successfully cancelled.', data: registration });
   } catch (error: any) {
@@ -326,6 +590,12 @@ router.get(
   authenticate,
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+      const competition = await Competition.findById(req.params.competitionId);
+      if (!competition || !canMonitorCompetition(req, competition)) {
+        res.status(403).json({ success: false, message: 'Forbidden: Not authorized to export registrations.' });
+        return;
+      }
+
       const registrations = await Registration.find({ competitionId: req.params.competitionId })
         .populate('userId', 'name email registrationNumber phone programme semester')
         .populate('school', 'name code');
@@ -362,6 +632,12 @@ router.get(
   authenticate,
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+      const competition = await Competition.findById(req.params.competitionId);
+      if (!competition || !canMonitorCompetition(req, competition)) {
+        res.status(403).json({ success: false, message: 'Forbidden: Not authorized to export registrations.' });
+        return;
+      }
+
       const registrations = await Registration.find({ competitionId: req.params.competitionId })
         .populate('userId', 'name email registrationNumber phone programme semester')
         .populate('school', 'name code');

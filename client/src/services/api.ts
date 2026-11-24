@@ -56,6 +56,17 @@ export async function request<T = any>(
   return data;
 }
 
+function buildQuery(params: Record<string, any> = {}): string {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== '') {
+      search.set(key, String(value));
+    }
+  }
+  const qs = search.toString();
+  return qs ? `?${qs}` : '';
+}
+
 export const api = {
   // Authentication
   login: (credentials: { email: string; password: string }) =>
@@ -66,22 +77,27 @@ export const api = {
   switchDemoRole: (role: string) =>
     request('/auth/switch-demo-role', { method: 'POST', body: JSON.stringify({ role }) }),
 
-  // Competitions
-  getPublicCompetitions: (params: Record<string, any> = {}) => {
-    const query = new URLSearchParams(params).toString();
-    return request(`/competitions/public?${query}`);
-  },
-  getCompetitions: (params: Record<string, any> = {}) => {
-    const query = new URLSearchParams(params).toString();
-    return request(`/competitions?${query}`);
-  },
+  // Competitions & Approval Hierarchy
+  getPublicCompetitions: (params: Record<string, any> = {}) =>
+    request(`/competitions/public${buildQuery(params)}`),
+  getStudentFeed: (params: Record<string, any> = {}) =>
+    request(`/competitions/student-feed${buildQuery(params)}`),
+  getCompetitions: (params: Record<string, any> = {}) =>
+    request(`/competitions${buildQuery(params)}`),
   getCompetitionById: (id: string) => request(`/competitions/${id}`),
+  getCompetitionTimeline: (id: string) => request(`/competitions/${id}/timeline`),
   createCompetition: (compData: any) =>
     request('/competitions', { method: 'POST', body: JSON.stringify(compData) }),
   updateCompetition: (id: string, compData: any) =>
     request(`/competitions/${id}`, { method: 'PUT', body: JSON.stringify(compData) }),
   submitCompetition: (id: string, remarks?: string) =>
     request(`/competitions/${id}/submit`, { method: 'POST', body: JSON.stringify({ remarks }) }),
+  hodReviewCompetition: (id: string, reviewData: { action: string; remarks: string }) =>
+    request(`/competitions/${id}/hod-review`, { method: 'POST', body: JSON.stringify(reviewData) }),
+  hosReviewCompetition: (id: string, reviewData: { action: string; remarks: string }) =>
+    request(`/competitions/${id}/hos-review`, { method: 'POST', body: JSON.stringify(reviewData) }),
+  dswReviewCompetition: (id: string, reviewData: { action: string; remarks: string; centralCoordinatorId?: string }) =>
+    request(`/competitions/${id}/dsw-review`, { method: 'POST', body: JSON.stringify(reviewData) }),
   reviewCompetition: (id: string, reviewData: { action: string; remarks: string; centralCoordinatorId?: string }) =>
     request(`/competitions/${id}/review`, { method: 'POST', body: JSON.stringify(reviewData) }),
   publishCompetition: (id: string, remarks?: string) =>
@@ -89,8 +105,10 @@ export const api = {
   updateCompetitionStatus: (id: string, statusData: { status: string; remarks?: string }) =>
     request(`/competitions/${id}/status`, { method: 'POST', body: JSON.stringify(statusData) }),
 
-  // Schools
+  // Schools & Departments
   getSchools: () => request('/schools'),
+  getDepartments: (schoolId?: string) =>
+    request(`/departments${buildQuery({ schoolId })}`),
   getSchoolById: (id: string) => request(`/schools/${id}`),
   getSchoolFaculty: (schoolId: string) => request(`/schools/${schoolId}/faculty`),
   getSchoolAnalytics: (schoolId: string) => request(`/schools/${schoolId}/analytics`),
@@ -109,10 +127,8 @@ export const api = {
   // Registrations
   registerForCompetition: (data: any) => request('/registrations', { method: 'POST', body: JSON.stringify(data) }),
   getMyRegistrations: () => request('/registrations/my'),
-  getCompetitionRegistrations: (competitionId: string, params: Record<string, any> = {}) => {
-    const query = new URLSearchParams(params).toString();
-    return request(`/registrations/competition/${competitionId}?${query}`);
-  },
+  getCompetitionRegistrations: (competitionId: string, params: Record<string, any> = {}) =>
+    request(`/registrations/competition/${competitionId}${buildQuery(params)}`),
   checkInParticipant: (id: string) =>
     request(`/registrations/${id}/checkin`, { method: 'POST' }),
   cancelRegistration: (id: string, reason?: string) =>
@@ -121,10 +137,8 @@ export const api = {
   getRegistrationExportCsvUrl: (compSlug: string) => `/api/registrations/competition/${compSlug}/export/csv`,
 
   // Faculty Duties
-  getDuties: (params: Record<string, any> = {}) => {
-    const query = new URLSearchParams(params).toString();
-    return request(`/duties?${query}`);
-  },
+  getDuties: (params: Record<string, any> = {}) =>
+    request(`/duties${buildQuery(params)}`),
   getMyDuties: () => request('/duties/my'),
   assignDuty: (data: any) => request('/duties', { method: 'POST', body: JSON.stringify(data) }),
   acknowledgeDuty: (id: string) => request(`/duties/${id}/acknowledge`, { method: 'POST' }),
@@ -164,13 +178,12 @@ export const api = {
   markNotificationRead: (id: string) => request(`/notifications/${id}/read`, { method: 'POST' }),
   markAllNotificationsRead: () => request('/notifications/read-all', { method: 'POST' }),
 
-  // Reports
+  // Reports & Monitoring
+  getMonitoringOverview: () => request('/monitoring/overview'),
   getDswReports: () => request('/reports/dsw-overview'),
   getReportExportUrl: (reportType: string, format = 'excel') => `/api/reports/export/${reportType}?format=${format}`,
 
   // Audit Logs
-  getAuditLogs: (params: Record<string, any> = {}) => {
-    const query = new URLSearchParams(params).toString();
-    return request(`/audit-logs?${query}`);
-  },
+  getAuditLogs: (params: Record<string, any> = {}) =>
+    request(`/audit-logs${buildQuery(params)}`),
 };

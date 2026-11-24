@@ -8,6 +8,7 @@ export interface IUser extends Document {
   password: string;
   roles: UserRole[];
   school?: mongoose.Types.ObjectId;
+  departmentId?: mongoose.Types.ObjectId;
   department?: string;
   programme?: string;
   semester?: number;
@@ -35,6 +36,7 @@ const UserSchema = new Schema<IUser>(
       },
     ],
     school: { type: Schema.Types.ObjectId, ref: 'School' },
+    departmentId: { type: Schema.Types.ObjectId, ref: 'Department', index: true },
     department: { type: String, trim: true },
     programme: { type: String, trim: true },
     semester: { type: Number, min: 1, max: 12 },

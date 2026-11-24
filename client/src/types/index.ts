@@ -1,6 +1,8 @@
 export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
   DSW_ADMIN = 'DSW_ADMIN',
+  HOS = 'HOS',
+  HOD = 'HOD',
   SCHOOL_COORDINATOR = 'SCHOOL_COORDINATOR',
   CULTURAL_COORDINATOR = 'CULTURAL_COORDINATOR',
   COMPETITION_ORGANIZER = 'COMPETITION_ORGANIZER',
@@ -8,6 +10,13 @@ export enum UserRole {
   JUDGE = 'JUDGE',
   STUDENT = 'STUDENT',
   VOLUNTEER = 'VOLUNTEER',
+}
+
+export enum ApprovalLevel {
+  NONE = 'NONE',
+  HOD = 'HOD',
+  HOS = 'HOS',
+  DSW = 'DSW',
 }
 
 export enum CompetitionScope {
@@ -33,6 +42,12 @@ export enum CompetitionCategory {
 
 export enum CompetitionStatus {
   DRAFT = 'DRAFT',
+  SUBMITTED_TO_HOD = 'SUBMITTED_TO_HOD',
+  PENDING_HOD_APPROVAL = 'PENDING_HOD_APPROVAL',
+  PENDING_HOS_APPROVAL = 'PENDING_HOS_APPROVAL',
+  PENDING_DSW_APPROVAL = 'PENDING_DSW_APPROVAL',
+  CHANGES_REQUESTED = 'CHANGES_REQUESTED',
+  APPROVED_BY_DSW = 'APPROVED_BY_DSW',
   SUBMITTED = 'SUBMITTED',
   UNDER_REVIEW = 'UNDER_REVIEW',
   REVISION_REQUIRED = 'REVISION_REQUIRED',
@@ -107,12 +122,23 @@ export enum CertificateType {
   ORGANIZER = 'ORGANIZER',
 }
 
+export interface Department {
+  _id: string;
+  name: string;
+  code: string;
+  school: any;
+  hod?: any;
+  description?: string;
+  isActive: boolean;
+}
+
 export interface User {
   _id: string;
   name: string;
   email: string;
   roles: UserRole[];
   school?: any;
+  departmentId?: any;
   department?: string;
   programme?: string;
   semester?: number;
@@ -132,6 +158,7 @@ export interface School {
   departments: string[];
   programmes: string[];
   deanName?: string;
+  hos?: any;
   contactEmail?: string;
   culturalCoordinator?: any;
   coordinatorHistory?: any[];
@@ -171,20 +198,31 @@ export interface Competition {
   category: CompetitionCategory;
   scope: CompetitionScope;
   organizingSchool?: any;
+  organizingDepartment?: any;
+  organizingDepartmentName?: string;
   coOrganizingSchools?: any[];
   isCentralDSW: boolean;
   organizer: any;
   facultyCoordinator?: any;
   centralCoordinator?: any;
+  competitionType?: string;
+  targetAudience?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  supportingDocuments?: string[];
   bannerUrl?: string;
   objectives?: string;
   rulesAndRegulations?: string;
   proposedDate: string;
   startDate?: string;
   endDate?: string;
+  startTime?: string;
+  endTime?: string;
   registrationOpenDate?: string;
   registrationCloseDate?: string;
   venue: string;
+  venueType?: 'CAMPUS' | 'ONLINE' | 'HYBRID';
+  onlinePlatformUrl?: string;
   alternativeVenue?: string;
   durationMinutes?: number;
   reportingTime?: string;
@@ -215,14 +253,29 @@ export interface Competition {
     otherPrizes?: string[];
   };
   sponsorshipInfo?: string;
+  proposalId?: string;
+  proposalCode?: string;
+  creatorRoleAtSubmission?: 'FACULTY' | 'HOD' | 'HOS' | 'DSW';
+  currentApprovalLevel?: ApprovalLevel;
+  returnedFromLevel?: ApprovalLevel | null;
+  hodApproval?: { approvedBy?: any; approvedAt?: string; remarks?: string };
+  hosApproval?: { approvedBy?: any; approvedAt?: string; remarks?: string };
+  dswApproval?: { approvedBy?: any; approvedAt?: string; remarks?: string };
   status: CompetitionStatus;
   isPublished: boolean;
   publishedAt?: string;
   submissionRemarks?: string;
+  hodRemarks?: string;
+  hosRemarks?: string;
   dswRemarks?: string;
   rejectionReason?: string;
   revisionNotes?: string;
   approvalAuditTrail: ApprovalAuditRecord[];
+  effectiveRegistrationStatus?: string;
+  remainingSeats?: number;
+  percentageFilled?: number;
+  isEligible?: boolean;
+  isAlreadyRegistered?: boolean;
   createdAt: string;
   updatedAt: string;
 }

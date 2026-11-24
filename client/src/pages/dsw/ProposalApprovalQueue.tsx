@@ -23,21 +23,23 @@ export const ProposalApprovalQueue: React.FC = () => {
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [queueMode, setQueueMode] = useState<'all' | 'pending'>('pending');
 
   // Selected proposal for drawer inspection & review
   const [selectedComp, setSelectedComp] = useState<Competition | null>(null);
-  const [reviewAction, setReviewAction] = useState<'APPROVE' | 'REJECT' | 'REVISION_REQUIRED'>('APPROVE');
+  const [reviewAction, setReviewAction] = useState<'APPROVE' | 'REJECT' | 'CHANGES_REQUESTED'>('APPROVE');
   const [reviewRemarks, setReviewRemarks] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     loadProposals();
-  }, [statusFilter]);
+  }, [statusFilter, queueMode]);
 
   const loadProposals = async () => {
     setLoading(true);
     try {
       const res = await api.getCompetitions({
+        queue: queueMode === 'pending' && !statusFilter ? 'pending' : undefined,
         status: statusFilter || undefined,
       });
       if (res.success && res.data) {
@@ -56,7 +58,7 @@ export const ProposalApprovalQueue: React.FC = () => {
 
     setSubmittingReview(true);
     try {
-      const res = await api.reviewCompetition(selectedComp._id, {
+      const res = await api.dswReviewCompetition(selectedComp._id, {
         action: reviewAction,
         remarks: reviewRemarks,
       });
@@ -152,7 +154,7 @@ export const ProposalApprovalQueue: React.FC = () => {
           >
             Review
           </button>
-          {c.status === CompetitionStatus.APPROVED && (
+          {[CompetitionStatus.APPROVED, CompetitionStatus.APPROVED_BY_DSW].includes(c.status) && (
             <button
               onClick={() => handlePublish(c)}
               className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[11px] shadow-sm flex items-center gap-1"
@@ -179,36 +181,36 @@ export const ProposalApprovalQueue: React.FC = () => {
         {/* Filter Pills */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
           <button
-            onClick={() => setStatusFilter('')}
+            onClick={() => { setQueueMode('pending'); setStatusFilter(''); }}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
-              !statusFilter ? 'bg-blue-600 text-white' : 'bg-white border text-slate-600 hover:bg-slate-50'
+              queueMode === 'pending' && !statusFilter ? 'bg-amber-600 text-white' : 'bg-white border text-slate-600 hover:bg-slate-50'
             }`}
           >
-            All States
+            Pending DSW Approval
           </button>
           <button
-            onClick={() => setStatusFilter('SUBMITTED')}
+            onClick={() => { setQueueMode('all'); setStatusFilter(''); }}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
-              statusFilter === 'SUBMITTED' ? 'bg-amber-600 text-white' : 'bg-white border text-slate-600 hover:bg-slate-50'
+              queueMode === 'all' && !statusFilter ? 'bg-blue-600 text-white' : 'bg-white border text-slate-600 hover:bg-slate-50'
             }`}
           >
-            Submitted
+            All University States
           </button>
           <button
-            onClick={() => setStatusFilter('APPROVED')}
+            onClick={() => { setQueueMode('all'); setStatusFilter('APPROVED_BY_DSW'); }}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
-              statusFilter === 'APPROVED' ? 'bg-emerald-600 text-white' : 'bg-white border text-slate-600 hover:bg-slate-50'
+              statusFilter === 'APPROVED_BY_DSW' ? 'bg-emerald-600 text-white' : 'bg-white border text-slate-600 hover:bg-slate-50'
             }`}
           >
-            Approved (Unpublished)
+            Approved (Ready to Publish)
           </button>
           <button
-            onClick={() => setStatusFilter('REVISION_REQUIRED')}
+            onClick={() => { setQueueMode('all'); setStatusFilter('CHANGES_REQUESTED'); }}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
-              statusFilter === 'REVISION_REQUIRED' ? 'bg-orange-600 text-white' : 'bg-white border text-slate-600 hover:bg-slate-50'
+              statusFilter === 'CHANGES_REQUESTED' ? 'bg-orange-600 text-white' : 'bg-white border text-slate-600 hover:bg-slate-50'
             }`}
           >
-            Revision Required
+            Changes Requested
           </button>
         </div>
       </div>
@@ -283,15 +285,15 @@ export const ProposalApprovalQueue: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setReviewAction('REVISION_REQUIRED')}
+                  onClick={() => setReviewAction('CHANGES_REQUESTED')}
                   className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 ${
-                    reviewAction === 'REVISION_REQUIRED'
+                    reviewAction === 'CHANGES_REQUESTED'
                       ? 'border-amber-600 bg-amber-50 text-amber-900 ring-1 ring-amber-600'
                       : 'border-slate-200 text-slate-600'
                   }`}
                 >
                   <RotateCcw className="w-4 h-4 text-amber-600" />
-                  <span>Revision</span>
+                  <span>Request Changes</span>
                 </button>
                 <button
                   type="button"

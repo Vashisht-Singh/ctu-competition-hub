@@ -40,8 +40,10 @@ export const LoginPage: React.FC = () => {
         showToast(`Signed in as ${role.replace('_', ' ')}!`, 'success');
         if (role === UserRole.DSW_ADMIN || role === UserRole.SUPER_ADMIN) {
           navigate('/dsw/dashboard');
-        } else if (role === UserRole.SCHOOL_COORDINATOR) {
-          navigate('/school/dashboard');
+        } else if (role === UserRole.HOS || role === UserRole.SCHOOL_COORDINATOR) {
+          navigate('/hos/dashboard');
+        } else if (role === UserRole.HOD) {
+          navigate('/hod/dashboard');
         } else if (role === UserRole.CULTURAL_COORDINATOR) {
           navigate('/cultural/dashboard');
         } else if (role === UserRole.FACULTY) {
@@ -135,11 +137,19 @@ export const LoginPage: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => handleQuickRole(UserRole.SCHOOL_COORDINATOR)}
+                onClick={() => handleQuickRole(UserRole.HOS)}
                 className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-left font-bold text-slate-800 transition-colors"
               >
-                🏫 School Coord
-                <span className="block text-[10px] font-normal text-slate-500">SOET Engg</span>
+                🏛️ HOS / School Head
+                <span className="block text-[10px] font-normal text-slate-500">SOET Approval</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickRole(UserRole.HOD)}
+                className="p-2.5 rounded-xl border border-indigo-200 bg-indigo-50/40 hover:bg-indigo-100/50 text-left font-bold text-indigo-900 transition-colors"
+              >
+                📋 HOD (CSE)
+                <span className="block text-[10px] font-normal text-indigo-600">Dept Approval</span>
               </button>
               <button
                 type="button"

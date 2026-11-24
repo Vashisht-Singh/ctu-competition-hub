@@ -27,7 +27,24 @@ export const StudentDashboard: React.FC = () => {
 
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
-  const [upcoming, setUpcoming] = useState<Competition[]>([]);
+  const [feed, setFeed] = useState<{
+    all: Competition[];
+    upcoming: Competition[];
+    openForRegistration: Competition[];
+    closingSoon: Competition[];
+    registrationClosed: Competition[];
+    completed: Competition[];
+  }>({
+    all: [],
+    upcoming: [],
+    openForRegistration: [],
+    closingSoon: [],
+    registrationClosed: [],
+    completed: [],
+  });
+  const [feedTab, setFeedTab] = useState<
+    'openForRegistration' | 'upcoming' | 'closingSoon' | 'registrationClosed' | 'completed' | 'all'
+  >('openForRegistration');
   const [loading, setLoading] = useState(true);
 
   // Badge View Modal
@@ -40,15 +57,15 @@ export const StudentDashboard: React.FC = () => {
   const loadStudentData = async () => {
     setLoading(true);
     try {
-      const [regRes, certRes, compRes] = await Promise.all([
+      const [regRes, certRes, feedRes] = await Promise.all([
         api.getMyRegistrations(),
         api.getMyCertificates(),
-        api.getPublicCompetitions(),
+        api.getStudentFeed(),
       ]);
 
       if (regRes.success) setRegistrations(regRes.data);
       if (certRes.success) setCertificates(certRes.data);
-      if (compRes.success) setUpcoming(compRes.data.slice(0, 3));
+      if (feedRes.success && feedRes.data) setFeed(feedRes.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -212,6 +229,127 @@ export const StudentDashboard: React.FC = () => {
                         Cancel
                       </button>
                     )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* DSW-Approved University Competitions Catalog */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">
+              University Competitions Directory (DSW Approved)
+            </h2>
+            <p className="text-xs text-slate-500">
+              All published CT University events across all 8 schools
+            </p>
+          </div>
+
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+            {[
+              { key: 'openForRegistration', label: `Open (${feed.openForRegistration.length})` },
+              { key: 'upcoming', label: `Upcoming (${feed.upcoming.length})` },
+              { key: 'closingSoon', label: `Closing Soon (${feed.closingSoon.length})` },
+              { key: 'registrationClosed', label: `Closed (${feed.registrationClosed.length})` },
+              { key: 'completed', label: `Completed (${feed.completed.length})` },
+              { key: 'all', label: `All (${feed.all.length})` },
+            ].map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setFeedTab(t.key as any)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${
+                  feedTab === t.key
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="bg-white rounded-2xl p-8 text-center text-xs text-slate-400 border border-slate-200">
+            Loading approved competitions...
+          </div>
+        ) : feed[feedTab].length === 0 ? (
+          <div className="bg-white rounded-2xl p-8 text-center text-xs text-slate-400 border border-slate-200">
+            No competitions currently in this category.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {feed[feedTab].map((comp) => {
+              const effStatus = comp.effectiveRegistrationStatus || comp.status;
+              const isOpen = effStatus === 'REGISTRATION_OPEN';
+
+              return (
+                <div
+                  key={comp._id}
+                  className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-blue-50 text-blue-700">
+                        {comp.category.replace(/_/g, ' ')}
+                      </span>
+                      <Badge status={effStatus} size="sm" />
+                    </div>
+                    <h3 className="text-sm font-extrabold text-slate-900 line-clamp-1">{comp.title}</h3>
+                    <p className="text-[11px] font-semibold text-slate-600">
+                      {comp.organizingSchool?.name || 'Central DSW'}
+                    </p>
+                    <p className="text-xs text-slate-500 line-clamp-2">{comp.description}</p>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-600 space-y-1">
+                    <div className="flex justify-between">
+                      <span>Event Date:</span>
+                      <strong className="text-slate-800">{new Date(comp.proposedDate).toLocaleDateString()}</strong>
+                    </div>
+                    {comp.registrationCloseDate && (
+                      <div className="flex justify-between">
+                        <span>Reg. Deadline:</span>
+                        <strong className="text-slate-800">{new Date(comp.registrationCloseDate).toLocaleDateString()}</strong>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span>Format:</span>
+                      <strong className="text-slate-800">
+                        {comp.participationType === 'TEAM' ? `Team (${comp.minTeamSize}-${comp.maxTeamSize})` : 'Individual'}
+                      </strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Available Seats:</span>
+                      <strong className={comp.remainingSeats === 0 ? 'text-rose-600' : 'text-emerald-700'}>
+                        {comp.maxRegistrations > 0 ? `${comp.remainingSeats ?? 0} / ${comp.maxRegistrations}` : 'Open'}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Link
+                      to={`/competitions/${comp._id}`}
+                      className={`flex-1 py-2 px-3 rounded-xl text-center text-xs font-bold transition-colors ${
+                        comp.isAlreadyRegistered
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : isOpen && comp.isEligible !== false
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {comp.isAlreadyRegistered
+                        ? 'Already Registered ✓'
+                        : isOpen && comp.isEligible !== false
+                        ? 'View & Register'
+                        : !comp.isEligible
+                        ? 'Not Eligible (View)'
+                        : 'View Details'}
+                    </Link>
                   </div>
                 </div>
               );

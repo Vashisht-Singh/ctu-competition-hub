@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
-import { FacultyDuty, FacultyDutyStatus } from '../../types';
+import { Competition, CompetitionStatus, FacultyDuty, FacultyDutyStatus } from '../../types';
 import { StatCard } from '../../components/StatCard';
 import { Badge } from '../../components/Badge';
 import { Modal } from '../../components/Modal';
+import { RegistrationMonitoringPanel } from '../../components/RegistrationMonitoringPanel';
+import { ApprovalTimelineCard } from '../../components/ApprovalTimelineCard';
 import { useNotification } from '../../context/NotificationContext';
 import {
   Briefcase,
@@ -12,15 +15,19 @@ import {
   AlertTriangle,
   Calendar,
   MapPin,
-  FileText,
-  Upload,
   RotateCcw,
   Eye,
+  PlusCircle,
+  Trophy,
+  BarChart3,
 } from 'lucide-react';
 
 export const FacultyDashboard: React.FC = () => {
   const { showToast } = useNotification();
   const [duties, setDuties] = useState<FacultyDuty[]>([]);
+  const [myProposals, setMyProposals] = useState<Competition[]>([]);
+  const [activeTab, setActiveTab] = useState<'proposals' | 'monitoring' | 'duties'>('proposals');
+  const [timelineComp, setTimelineComp] = useState<Competition | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Complete Duty Modal
@@ -44,9 +51,12 @@ export const FacultyDashboard: React.FC = () => {
   const loadMyDuties = async () => {
     setLoading(true);
     try {
-      const res = await api.getMyDuties();
-      if (res.success && res.data) {
-        setDuties(res.data);
+      const [dutyRes, propRes] = await Promise.all([api.getMyDuties(), api.getCompetitions()]);
+      if (dutyRes.success && dutyRes.data) {
+        setDuties(dutyRes.data);
+      }
+      if (propRes.success && propRes.data) {
+        setMyProposals(propRes.data);
       }
     } catch (err) {
       console.error(err);
@@ -122,51 +132,173 @@ export const FacultyDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div>
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Faculty Competition Duties</h1>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-100 text-blue-800">
-            Official Assignments
-          </span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Faculty Competition Workspace</h1>
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-100 text-blue-800">
+              Faculty → HOD → HOS → DSW
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Propose competitions (auto-routed to your HOD), track approval timeline, monitor registrations, and execute assigned duties.
+          </p>
         </div>
-        <p className="text-xs text-slate-500 mt-1">
-          Acknowledge competition responsibilities, view reporting guidelines, and submit duty completion reports with evidence.
-        </p>
+
+        <Link
+          to="/competitions/create"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20"
+        >
+          <PlusCircle className="w-4 h-4" />
+          <span>Create Competition Proposal</span>
+        </Link>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Assigned Duties"
-          value={total}
-          subtitle="Total Competition Duties"
-          icon={Briefcase}
+          title="My Proposals"
+          value={myProposals.length}
+          subtitle={`${myProposals.filter((p) => p.isPublished).length} Published`}
+          icon={Trophy}
           color="blue"
         />
         <StatCard
-          title="Pending Execution"
-          value={pendingCount}
-          subtitle="Assigned / Acknowledged"
-          icon={Clock}
+          title="Changes Requested"
+          value={myProposals.filter((p) => [CompetitionStatus.CHANGES_REQUESTED, CompetitionStatus.REVISION_REQUIRED].includes(p.status)).length}
+          subtitle="Needs your update"
+          icon={RotateCcw}
           color="amber"
         />
         <StatCard
-          title="Verified & Approved"
+          title="Assigned Duties"
+          value={total}
+          subtitle={`${pendingCount} Pending Execution`}
+          icon={Briefcase}
+          color="indigo"
+        />
+        <StatCard
+          title="Verified Duties"
           value={verifiedCount}
-          subtitle="Signed Off by Supervisor"
+          subtitle={`${overdueCount} Overdue`}
           icon={CheckCircle2}
           color="emerald"
         />
-        <StatCard
-          title="Overdue Tasks"
-          value={overdueCount}
-          subtitle="Requires Urgent Attention"
-          icon={AlertTriangle}
-          color="rose"
-        />
       </div>
 
-      {/* Duties List */}
+      {/* Workspace Tabs */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-2">
+        <button
+          onClick={() => setActiveTab('proposals')}
+          className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 ${
+            activeTab === 'proposals' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-600'
+          }`}
+        >
+          <Trophy className="w-3.5 h-3.5" />
+          <span>My Proposals & Timeline ({myProposals.length})</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('monitoring')}
+          className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 ${
+            activeTab === 'monitoring' ? 'bg-emerald-600 text-white' : 'bg-white border border-slate-200 text-slate-600'
+          }`}
+        >
+          <BarChart3 className="w-3.5 h-3.5" />
+          <span>Registration Monitoring</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('duties')}
+          className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 ${
+            activeTab === 'duties' ? 'bg-indigo-600 text-white' : 'bg-white border border-slate-200 text-slate-600'
+          }`}
+        >
+          <Briefcase className="w-3.5 h-3.5" />
+          <span>My Duties & Evidence ({total})</span>
+        </button>
+      </div>
+
+      {activeTab === 'proposals' && (
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+          {myProposals.length === 0 ? (
+            <div className="p-12 text-center text-xs text-slate-400">
+              <Trophy className="w-9 h-9 text-slate-300 mx-auto mb-2" />
+              <p className="font-bold text-slate-700">No competition proposals yet</p>
+              <Link
+                to="/competitions/create"
+                className="mt-3 inline-block px-4 py-2 rounded-xl bg-blue-600 text-white font-bold"
+              >
+                Create Your First Proposal
+              </Link>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {myProposals.map((comp) => {
+                const canEdit = [
+                  CompetitionStatus.DRAFT,
+                  CompetitionStatus.CHANGES_REQUESTED,
+                  CompetitionStatus.REVISION_REQUIRED,
+                ].includes(comp.status);
+
+                return (
+                  <div key={comp._id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                          {comp.code}
+                        </span>
+                        <span className="text-sm font-bold text-slate-900">{comp.title}</span>
+                        <Badge status={comp.status} size="sm" />
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        {comp.organizingDepartmentName || 'Department'} • Proposed: {new Date(comp.proposedDate).toLocaleDateString()} • Venue: {comp.venue}
+                      </p>
+                      {comp.revisionNotes && comp.status === CompetitionStatus.CHANGES_REQUESTED && (
+                        <p className="text-xs text-orange-700 bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-200">
+                          Requested Changes (Resumes at {comp.returnedFromLevel || 'Reviewer'}): "{comp.revisionNotes}"
+                        </p>
+                      )}
+                      {comp.rejectionReason && comp.status === CompetitionStatus.REJECTED && (
+                        <p className="text-xs text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200">
+                          Rejection Reason: "{comp.rejectionReason}"
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setTimelineComp(comp)}
+                        className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                      >
+                        Approval Timeline
+                      </button>
+                      <Link
+                        to={`/competitions/${comp._id}`}
+                        className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                      >
+                        View
+                      </Link>
+                      {canEdit && (
+                        <Link
+                          to={`/competitions/create?edit=${comp._id}`}
+                          className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold"
+                        >
+                          {comp.status === CompetitionStatus.DRAFT ? 'Edit & Submit' : 'Update & Resubmit'}
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'monitoring' && (
+        <RegistrationMonitoringPanel title="My Competition Registrations" />
+      )}
+
+      {activeTab === 'duties' && (
       <div className="space-y-4">
         <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
           My Active Assignments & Timeline
@@ -286,6 +418,25 @@ export const FacultyDashboard: React.FC = () => {
           </div>
         )}
       </div>
+      )}
+
+      {/* Proposal Approval Timeline Modal */}
+      {timelineComp && (
+        <Modal
+          isOpen={Boolean(timelineComp)}
+          onClose={() => setTimelineComp(null)}
+          title={timelineComp.title}
+          subtitle={`Code: ${timelineComp.code}`}
+          maxWidth="2xl"
+        >
+          <ApprovalTimelineCard
+            currentStatus={timelineComp.status}
+            currentLevel={timelineComp.currentApprovalLevel}
+            creatorRole={timelineComp.creatorRoleAtSubmission}
+            entries={timelineComp.approvalAuditTrail || []}
+          />
+        </Modal>
+      )}
 
       {/* Completion Evidence Submission Modal */}
       {completingDuty && (

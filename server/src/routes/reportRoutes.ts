@@ -30,8 +30,22 @@ router.get(
         overdueDuties,
       ] = await Promise.all([
         Competition.countDocuments(),
-        Competition.countDocuments({ status: { $in: ['SUBMITTED', 'UNDER_REVIEW', 'REVISION_REQUIRED', 'RESUBMITTED'] } }),
-        Competition.countDocuments({ status: 'APPROVED' }),
+        Competition.countDocuments({
+          status: {
+            $in: [
+              'SUBMITTED_TO_HOD',
+              'PENDING_HOD_APPROVAL',
+              'PENDING_HOS_APPROVAL',
+              'PENDING_DSW_APPROVAL',
+              'CHANGES_REQUESTED',
+              'SUBMITTED',
+              'UNDER_REVIEW',
+              'REVISION_REQUIRED',
+              'RESUBMITTED',
+            ],
+          },
+        }),
+        Competition.countDocuments({ status: { $in: ['APPROVED_BY_DSW', 'APPROVED'] } }),
         Competition.countDocuments({ status: { $in: ['PUBLISHED', 'REGISTRATION_OPEN', 'IN_PROGRESS'] } }),
         Competition.countDocuments({ status: 'COMPLETED' }),
         Registration.countDocuments(),

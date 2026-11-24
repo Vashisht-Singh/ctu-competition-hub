@@ -1,6 +1,8 @@
 export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
   DSW_ADMIN = 'DSW_ADMIN',
+  HOS = 'HOS',
+  HOD = 'HOD',
   SCHOOL_COORDINATOR = 'SCHOOL_COORDINATOR',
   CULTURAL_COORDINATOR = 'CULTURAL_COORDINATOR',
   COMPETITION_ORGANIZER = 'COMPETITION_ORGANIZER',
@@ -8,6 +10,13 @@ export enum UserRole {
   JUDGE = 'JUDGE',
   STUDENT = 'STUDENT',
   VOLUNTEER = 'VOLUNTEER',
+}
+
+export enum ApprovalLevel {
+  NONE = 'NONE',
+  HOD = 'HOD',
+  HOS = 'HOS',
+  DSW = 'DSW',
 }
 
 export enum CompetitionScope {
@@ -33,6 +42,13 @@ export enum CompetitionCategory {
 
 export enum CompetitionStatus {
   DRAFT = 'DRAFT',
+  SUBMITTED_TO_HOD = 'SUBMITTED_TO_HOD',
+  PENDING_HOD_APPROVAL = 'PENDING_HOD_APPROVAL',
+  PENDING_HOS_APPROVAL = 'PENDING_HOS_APPROVAL',
+  PENDING_DSW_APPROVAL = 'PENDING_DSW_APPROVAL',
+  CHANGES_REQUESTED = 'CHANGES_REQUESTED',
+  APPROVED_BY_DSW = 'APPROVED_BY_DSW',
+  // Legacy / alias statuses retained for backward compatibility with existing DB records
   SUBMITTED = 'SUBMITTED',
   UNDER_REVIEW = 'UNDER_REVIEW',
   REVISION_REQUIRED = 'REVISION_REQUIRED',

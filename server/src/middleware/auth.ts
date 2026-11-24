@@ -39,3 +39,26 @@ export const authenticate = async (
     res.status(401).json({ success: false, message: 'Invalid or expired authentication token.' });
   }
 };
+
+export const authenticateOptional = async (
+  req: AuthRequest,
+  _res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, ENV.JWT_SECRET) as { id: string; roles: UserRole[] };
+      const user = await User.findById(decoded.id).select('-password');
+      if (user && user.isActive) {
+        req.user = user;
+        req.userId = user._id.toString();
+        req.userRoles = user.roles;
+      }
+    }
+  } catch {
+    // Ignore invalid optional token and proceed as anonymous
+  }
+  next();
+};

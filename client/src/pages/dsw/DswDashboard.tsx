@@ -4,6 +4,7 @@ import { api } from '../../services/api';
 import { StatCard } from '../../components/StatCard';
 import { Badge } from '../../components/Badge';
 import { Modal } from '../../components/Modal';
+import { RegistrationMonitoringPanel } from '../../components/RegistrationMonitoringPanel';
 import { useNotification } from '../../context/NotificationContext';
 import { Competition, CompetitionStatus } from '../../types';
 import {
@@ -60,7 +61,7 @@ export const DswDashboard: React.FC = () => {
       const [reportsRes, pendingRes] = await Promise.all([
         api.getDswReports(),
         api.getCompetitions({
-          status: 'SUBMITTED',
+          queue: 'pending',
         }),
       ]);
 
@@ -93,10 +94,10 @@ export const DswDashboard: React.FC = () => {
 
     setSubmittingReview(true);
     try {
-      const res = await api.reviewCompetition(reviewingComp._id, {
-        action: reviewAction,
-        remarks: reviewRemarks,
-      });
+        const res = await api.dswReviewCompetition(reviewingComp._id, {
+          action: reviewAction,
+          remarks: reviewRemarks,
+        });
 
       if (res.success) {
         showToast(res.message || 'Review action submitted successfully.', 'success');
@@ -294,7 +295,7 @@ export const DswDashboard: React.FC = () => {
                     className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-sm transition-colors flex items-center gap-1.5"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Revision</span>
+                    <span>Request Changes</span>
                   </button>
 
                   <button
@@ -309,6 +310,9 @@ export const DswDashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* University-Wide Registration Monitoring */}
+      <RegistrationMonitoringPanel title="University-Wide Registration Monitoring" />
 
       {/* Analytics Visualizations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

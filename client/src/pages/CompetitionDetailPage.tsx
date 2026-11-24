@@ -4,6 +4,7 @@ import { api } from '../services/api';
 import { Competition, CompetitionStatus, UserRole } from '../types';
 import { Badge } from '../components/Badge';
 import { Modal } from '../components/Modal';
+import { ApprovalTimelineCard } from '../components/ApprovalTimelineCard';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import {
@@ -124,7 +125,25 @@ export const CompetitionDetailPage: React.FC = () => {
   }
 
   const isDswOrAdmin = user?.roles?.some((r) => [UserRole.DSW_ADMIN, UserRole.SUPER_ADMIN].includes(r));
-  const isRegOpen = competition.status === CompetitionStatus.REGISTRATION_OPEN;
+  const isStaff = Boolean(
+    user?.roles?.some((r) =>
+      [
+        UserRole.DSW_ADMIN,
+        UserRole.SUPER_ADMIN,
+        UserRole.HOS,
+        UserRole.HOD,
+        UserRole.SCHOOL_COORDINATOR,
+        UserRole.CULTURAL_COORDINATOR,
+        UserRole.FACULTY,
+      ].includes(r)
+    )
+  );
+  const isStudentOnly = Boolean(user?.roles?.includes(UserRole.STUDENT)) && !isStaff;
+  const effectiveStatus = competition.effectiveRegistrationStatus || competition.status;
+  const isRegOpen = effectiveStatus === CompetitionStatus.REGISTRATION_OPEN;
+  const remainingSeats =
+    competition.remainingSeats ??
+    Math.max(0, (competition.maxRegistrations || 0) - (competition.currentRegistrationsCount || 0));
 
   return (
     <div className="space-y-6">
@@ -224,13 +243,20 @@ export const CompetitionDetailPage: React.FC = () => {
 
           {/* Action CTAs */}
           <div className="flex items-center gap-2">
-            {isRegOpen && (
+            {isRegOpen && (!user || isStudentOnly) && (
               <button
-                onClick={() => setShowRegModal(true)}
+                onClick={() => (user ? setShowRegModal(true) : navigate('/login'))}
                 className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all flex items-center gap-2"
               >
-                <span>Register Now</span>
+                <span>{user ? `Register Now (${remainingSeats} seats left)` : 'Sign In as Student to Register'}</span>
               </button>
+            )}
+            {!isRegOpen && competition.isPublished && (
+              <span className="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold border border-slate-200">
+                {effectiveStatus === CompetitionStatus.PUBLISHED && competition.registrationOpenDate
+                  ? `Opens ${new Date(competition.registrationOpenDate).toLocaleDateString()}`
+                  : effectiveStatus.replace(/_/g, ' ')}
+              </span>
             )}
 
             {isDswOrAdmin && (
@@ -289,7 +315,7 @@ export const CompetitionDetailPage: React.FC = () => {
               <span>Official Results ({results.length})</span>
             </button>
           )}
-          {(isDswOrAdmin || user?.roles?.includes(UserRole.SCHOOL_COORDINATOR)) && (
+          {isStaff && (
             <button
               onClick={() => setActiveTab('audit')}
               className={`py-4 border-b-2 transition-colors flex items-center gap-1.5 ${
@@ -299,7 +325,7 @@ export const CompetitionDetailPage: React.FC = () => {
               }`}
             >
               <History className="w-3.5 h-3.5" />
-              <span>Approval Audit Trail ({competition.approvalAuditTrail?.length || 0})</span>
+              <span>Approval Timeline ({competition.approvalAuditTrail?.length || 0})</span>
             </button>
           )}
         </div>
@@ -486,36 +512,14 @@ export const CompetitionDetailPage: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'audit' && (
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold text-slate-900">Immutable Proposal Review & Approval Audit Trail</h3>
-              <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white">
-                {competition.approvalAuditTrail?.map((trail, idx) => (
-                  <div key={idx} className="p-4 space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-900">{trail.action}</span>
-                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-bold">
-                          {trail.role}
-                        </span>
-                      </div>
-                      <span className="text-[11px] text-slate-400">
-                        {new Date(trail.timestamp).toLocaleString()}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-600">
-                      Status transition: <span className="font-semibold text-slate-700">{trail.previousStatus}</span> →{' '}
-                      <span className="font-semibold text-blue-700">{trail.newStatus}</span>
-                    </p>
-                    {trail.remarks && (
-                      <p className="text-xs text-slate-500 bg-slate-50 p-2 rounded-lg mt-1 italic">
-                        "{trail.remarks}"
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+          {activeTab === 'audit' && isStaff && (
+            <ApprovalTimelineCard
+              title="Competition Hierarchy Approval Timeline"
+              currentStatus={competition.status}
+              currentLevel={competition.currentApprovalLevel}
+              creatorRole={competition.creatorRoleAtSubmission}
+              entries={competition.approvalAuditTrail || []}
+            />
           )}
         </div>
       </div>

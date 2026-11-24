@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import {
   School,
+  Department,
   CompetitionCategory,
   CompetitionScope,
   UserRole,
@@ -27,8 +28,11 @@ export const CreateCompetitionPage: React.FC = () => {
   const { user } = useAuth();
   const { showToast } = useNotification();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
 
   const [schools, setSchools] = useState<School[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   // Form Fields - Basic Info
@@ -36,19 +40,31 @@ export const CreateCompetitionPage: React.FC = () => {
   const [code, setCode] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<CompetitionCategory>(CompetitionCategory.TECHNICAL);
+  const [competitionType, setCompetitionType] = useState('HACKATHON');
   const [scope, setScope] = useState<CompetitionScope>(CompetitionScope.UNIVERSITY_LEVEL);
   const [organizingSchool, setOrganizingSchool] = useState('');
+  const [organizingDepartment, setOrganizingDepartment] = useState('');
+  const [organizingDepartmentName, setOrganizingDepartmentName] = useState('');
   const [isCentralDSW, setIsCentralDSW] = useState(false);
+  const [targetAudience, setTargetAudience] = useState('All CT University Students');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [supportingDocumentUrl, setSupportingDocumentUrl] = useState('');
   const [bannerUrl, setBannerUrl] = useState('https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200');
   const [objectives, setObjectives] = useState('');
   const [rulesAndRegulations, setRulesAndRegulations] = useState('');
 
   // Scheduling
   const [proposedDate, setProposedDate] = useState('');
+  const [startTime, setStartTime] = useState('09:00 AM');
+  const [endTime, setEndTime] = useState('05:00 PM');
   const [reportingTime, setReportingTime] = useState('09:00 AM');
   const [durationMinutes, setDurationMinutes] = useState(180);
+  const [registrationOpenDate, setRegistrationOpenDate] = useState('');
   const [registrationCloseDate, setRegistrationCloseDate] = useState('');
+  const [venueType, setVenueType] = useState<'CAMPUS' | 'ONLINE' | 'HYBRID'>('CAMPUS');
   const [venue, setVenue] = useState('');
+  const [onlinePlatformUrl, setOnlinePlatformUrl] = useState('');
   const [alternativeVenue, setAlternativeVenue] = useState('');
   const [rounds, setRounds] = useState<{ roundNumber: number; name: string; venue: string }[]>([
     { roundNumber: 1, name: 'Preliminary Screening', venue: '' },
@@ -73,7 +89,90 @@ export const CreateCompetitionPage: React.FC = () => {
 
   useEffect(() => {
     loadSchools();
-  }, []);
+    if (user?.email) setContactEmail(user.email);
+    if (user?.phone) setContactPhone(user.phone);
+  }, [user]);
+
+  useEffect(() => {
+    if (organizingSchool) {
+      loadDepartments(organizingSchool);
+    }
+  }, [organizingSchool]);
+
+  useEffect(() => {
+    if (editId) {
+      loadExistingForEdit(editId);
+    }
+  }, [editId]);
+
+  const loadExistingForEdit = async (id: string) => {
+    try {
+      const res = await api.getCompetitionById(id);
+      if (res.success && res.data) {
+        const c = res.data;
+        setTitle(c.title || '');
+        setCode(c.code || '');
+        setDescription(c.description || '');
+        setCategory(c.category || CompetitionCategory.TECHNICAL);
+        setCompetitionType(c.competitionType || 'HACKATHON');
+        setScope(c.scope || CompetitionScope.UNIVERSITY_LEVEL);
+        setOrganizingSchool(c.organizingSchool?._id || c.organizingSchool || '');
+        setOrganizingDepartment(c.organizingDepartment?._id || c.organizingDepartment || '');
+        setOrganizingDepartmentName(c.organizingDepartmentName || '');
+        setTargetAudience(c.targetAudience || '');
+        setContactEmail(c.contactEmail || '');
+        setContactPhone(c.contactPhone || '');
+        setSupportingDocumentUrl(c.supportingDocuments?.[0] || '');
+        setBannerUrl(c.bannerUrl || '');
+        setObjectives(c.objectives || '');
+        setRulesAndRegulations(c.rulesAndRegulations || '');
+        if (c.proposedDate) setProposedDate(new Date(c.proposedDate).toISOString().slice(0, 10));
+        if (c.registrationOpenDate) setRegistrationOpenDate(new Date(c.registrationOpenDate).toISOString().slice(0, 10));
+        if (c.registrationCloseDate) setRegistrationCloseDate(new Date(c.registrationCloseDate).toISOString().slice(0, 10));
+        setStartTime(c.startTime || '09:00 AM');
+        setEndTime(c.endTime || '05:00 PM');
+        setReportingTime(c.reportingTime || '09:00 AM');
+        setDurationMinutes(c.durationMinutes || 180);
+        setVenueType(c.venueType || 'CAMPUS');
+        setVenue(c.venue || '');
+        setOnlinePlatformUrl(c.onlinePlatformUrl || '');
+        setAlternativeVenue(c.alternativeVenue || '');
+        setParticipationType(c.participationType || 'INDIVIDUAL');
+        setMinTeamSize(c.minTeamSize || 1);
+        setMaxTeamSize(c.maxTeamSize || 1);
+        setMaxRegistrations(c.maxRegistrations || 100);
+        setRegistrationFee(c.registrationFee || 0);
+        setEligibilityConditions(c.eligibilityConditions || '');
+        setBudgetProposal(c.budgetProposal || 0);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const loadDepartments = async (schoolId: string) => {
+    try {
+      const res = await api.getDepartments(schoolId);
+      if (res.success && res.data) {
+        setDepartments(res.data);
+        if (!organizingDepartment) {
+          const userDeptId = user?.departmentId?._id || user?.departmentId;
+          const matchByUser =
+            res.data.find((d: Department) => d._id === userDeptId) ||
+            res.data.find((d: Department) => d.name === user?.department);
+          if (matchByUser) {
+            setOrganizingDepartment(matchByUser._id);
+            setOrganizingDepartmentName(matchByUser.name);
+          } else if (res.data.length > 0) {
+            setOrganizingDepartment(res.data[0]._id);
+            setOrganizingDepartmentName(res.data[0].name);
+          }
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const loadSchools = async () => {
     try {
@@ -82,6 +181,8 @@ export const CreateCompetitionPage: React.FC = () => {
         setSchools(res.data);
         if (user?.school?._id) {
           setOrganizingSchool(user.school._id);
+        } else if (typeof user?.school === 'string' && user.school) {
+          setOrganizingSchool(user.school);
         } else if (res.data.length > 0) {
           setOrganizingSchool(res.data[0]._id);
         }
@@ -89,6 +190,20 @@ export const CreateCompetitionPage: React.FC = () => {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const getHierarchyRouteLabel = () => {
+    const roles = user?.roles || [];
+    if (roles.includes(UserRole.DSW_ADMIN) || roles.includes(UserRole.SUPER_ADMIN)) {
+      return 'DSW Direct Approval → Publish';
+    }
+    if (roles.includes(UserRole.HOS) || roles.includes(UserRole.SCHOOL_COORDINATOR)) {
+      return 'HOS Submission → DSW Final Approval → Publish';
+    }
+    if (roles.includes(UserRole.HOD)) {
+      return 'HOD Submission → HOS Approval → DSW Final Approval → Publish';
+    }
+    return 'Faculty Submission → HOD Approval → HOS Approval → DSW Final Approval → Publish';
   };
 
   const handleAddRound = () => {
@@ -115,17 +230,29 @@ export const CreateCompetitionPage: React.FC = () => {
         code: code.toUpperCase().trim(),
         description,
         category,
+        competitionType,
         scope,
         organizingSchool: isCentralDSW ? undefined : organizingSchool,
+        organizingDepartment: isCentralDSW ? undefined : organizingDepartment || undefined,
+        organizingDepartmentName: isCentralDSW ? undefined : organizingDepartmentName || user?.department,
         isCentralDSW,
+        targetAudience,
+        contactEmail,
+        contactPhone,
+        supportingDocuments: supportingDocumentUrl ? [supportingDocumentUrl] : [],
         bannerUrl,
         objectives,
         rulesAndRegulations,
         proposedDate,
+        startTime,
+        endTime,
         reportingTime,
         durationMinutes,
+        registrationOpenDate: registrationOpenDate || undefined,
         registrationCloseDate: registrationCloseDate || undefined,
+        venueType,
         venue,
+        onlinePlatformUrl: onlinePlatformUrl || undefined,
         alternativeVenue,
         rounds,
         participationType,
@@ -144,17 +271,31 @@ export const CreateCompetitionPage: React.FC = () => {
         },
         sponsorshipInfo,
         submitForReview,
+        resubmit: Boolean(editId && submitForReview),
       };
 
-      const res = await api.createCompetition(payload);
+      const res = editId
+        ? await api.updateCompetition(editId, payload)
+        : await api.createCompetition(payload);
+
       if (res.success) {
         showToast(
-          submitForReview
-            ? 'Proposal created and submitted for DSW review!'
-            : 'Draft proposal saved successfully!',
+          res.message ||
+            (submitForReview
+              ? 'Proposal submitted into university approval hierarchy!'
+              : 'Draft proposal saved successfully!'),
           'success'
         );
-        navigate(user?.roles?.includes(UserRole.DSW_ADMIN) ? '/dsw/dashboard' : '/school/dashboard');
+        const roles = user?.roles || [];
+        if (roles.includes(UserRole.DSW_ADMIN) || roles.includes(UserRole.SUPER_ADMIN)) {
+          navigate('/dsw/dashboard');
+        } else if (roles.includes(UserRole.HOS) || roles.includes(UserRole.SCHOOL_COORDINATOR)) {
+          navigate('/hos/dashboard');
+        } else if (roles.includes(UserRole.HOD)) {
+          navigate('/hod/dashboard');
+        } else {
+          navigate('/faculty/dashboard');
+        }
       } else {
         showToast(res.message || 'Submission failed', 'error');
       }
@@ -181,11 +322,12 @@ export const CreateCompetitionPage: React.FC = () => {
       <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-10 space-y-8">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            Create Competition Proposal
+            {editId ? 'Update & Resubmit Competition Proposal' : 'Create Competition Proposal'}
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Standard University Proposal Form: Once submitted, proposals route to the Directorate of Student Welfare (DSW) for administrative verification and budget approval.
-          </p>
+          <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-900">
+            <span>Approval Route:</span>
+            <span className="font-bold text-blue-700">{getHierarchyRouteLabel()}</span>
+          </div>
         </div>
 
         <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
@@ -259,9 +401,12 @@ export const CreateCompetitionPage: React.FC = () => {
                 <label className="block text-xs font-bold text-slate-700 mb-1">Organizing School *</label>
                 <select
                   value={organizingSchool}
-                  disabled={isCentralDSW}
-                  onChange={(e) => setOrganizingSchool(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white disabled:opacity-50"
+                  disabled={isCentralDSW || (!user?.roles?.includes(UserRole.DSW_ADMIN) && Boolean(user?.school))}
+                  onChange={(e) => {
+                    setOrganizingSchool(e.target.value);
+                    setOrganizingDepartment('');
+                  }}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white disabled:bg-slate-100 disabled:text-slate-600"
                 >
                   {schools.map((s) => (
                     <option key={s._id} value={s._id}>
@@ -269,6 +414,89 @@ export const CreateCompetitionPage: React.FC = () => {
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Organizing Department *</label>
+                <select
+                  value={organizingDepartment}
+                  disabled={isCentralDSW || (!user?.roles?.includes(UserRole.DSW_ADMIN) && !user?.roles?.includes(UserRole.HOS) && Boolean(user?.departmentId))}
+                  onChange={(e) => {
+                    const deptId = e.target.value;
+                    setOrganizingDepartment(deptId);
+                    const found = departments.find((d) => d._id === deptId);
+                    if (found) setOrganizingDepartmentName(found.name);
+                  }}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white disabled:bg-slate-100 disabled:text-slate-600"
+                >
+                  {departments.map((d) => (
+                    <option key={d._id} value={d._id}>
+                      {d.name} ({d.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Competition Type *</label>
+                <select
+                  value={competitionType}
+                  onChange={(e) => setCompetitionType(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white"
+                >
+                  <option value="HACKATHON">Hackathon / Coding</option>
+                  <option value="WORKSHOP">Workshop / Seminar</option>
+                  <option value="QUIZ">Quiz / Olympiad</option>
+                  <option value="CULTURAL_SHOW">Cultural Showcase</option>
+                  <option value="MOOT_COURT">Moot Court / Legal</option>
+                  <option value="CASE_STUDY">Case Study / Business</option>
+                  <option value="TOURNAMENT">Sports Tournament</option>
+                  <option value="EXHIBITION">Design / Project Expo</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Target Audience</label>
+                <input
+                  type="text"
+                  value={targetAudience}
+                  onChange={(e) => setTargetAudience(e.target.value)}
+                  placeholder="e.g. All UG/PG Students across CTU"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Coordinator Email</label>
+                <input
+                  type="email"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Coordinator Phone</label>
+                <input
+                  type="text"
+                  value={contactPhone}
+                  onChange={(e) => setContactPhone(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Supporting Document URL</label>
+                <input
+                  type="url"
+                  value={supportingDocumentUrl}
+                  onChange={(e) => setSupportingDocumentUrl(e.target.value)}
+                  placeholder="https://drive.google.com/proposal-doc"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300"
+                />
               </div>
             </div>
 
@@ -341,14 +569,60 @@ export const CreateCompetitionPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Reporting Time</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Registration Opens On</label>
+                <input
+                  type="date"
+                  value={registrationOpenDate}
+                  onChange={(e) => setRegistrationOpenDate(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Registration Closes On</label>
+                <input
+                  type="date"
+                  value={registrationCloseDate}
+                  onChange={(e) => setRegistrationCloseDate(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Start Time</label>
                 <input
                   type="text"
-                  value={reportingTime}
-                  onChange={(e) => setReportingTime(e.target.value)}
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
                   placeholder="09:00 AM"
                   className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">End Time</label>
+                <input
+                  type="text"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  placeholder="05:00 PM"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Venue Mode</label>
+                <select
+                  value={venueType}
+                  onChange={(e) => setVenueType(e.target.value as 'CAMPUS' | 'ONLINE' | 'HYBRID')}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white"
+                >
+                  <option value="CAMPUS">On-Campus Venue</option>
+                  <option value="ONLINE">Online Platform</option>
+                  <option value="HYBRID">Hybrid Mode</option>
+                </select>
               </div>
 
               <div>
@@ -361,6 +635,19 @@ export const CreateCompetitionPage: React.FC = () => {
                 />
               </div>
             </div>
+
+            {venueType !== 'CAMPUS' && (
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Online Meeting / Platform Link</label>
+                <input
+                  type="url"
+                  value={onlinePlatformUrl}
+                  onChange={(e) => setOnlinePlatformUrl(e.target.value)}
+                  placeholder="https://meet.google.com/..."
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300"
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -625,7 +912,7 @@ export const CreateCompetitionPage: React.FC = () => {
               className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all disabled:opacity-50"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>{submitting ? 'Submitting...' : 'Submit Proposal for DSW Review'}</span>
+              <span>{submitting ? 'Submitting...' : editId ? 'Resubmit Proposal' : 'Submit into Approval Workflow'}</span>
             </button>
           </div>
         </form>
