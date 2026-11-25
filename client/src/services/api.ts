@@ -186,4 +186,9 @@ export const api = {
   // Audit Logs
   getAuditLogs: (params: Record<string, any> = {}) =>
     request(`/audit-logs${buildQuery(params)}`),
+
+  // Hub Assistant Chatbot
+  getChatWelcome: () => request('/chat/welcome'),
+  askChatbot: (message: string, history: Array<{ sender: 'user' | 'bot'; text: string }> = []) =>
+    request('/chat/ask', { method: 'POST', body: JSON.stringify({ message, history }) }),
 };

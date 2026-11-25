@@ -37,6 +37,7 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import auditRoutes from './routes/auditRoutes.js';
 import monitoringRoutes from './routes/monitoringRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 
 export const createApp = (): express.Application => {
   const app = express();
@@ -96,6 +97,7 @@ export const createApp = (): express.Application => {
     app.use(`${prefix}/reports`, reportRoutes);
     app.use(`${prefix}/audit-logs`, auditRoutes);
     app.use(`${prefix}/monitoring`, monitoringRoutes);
+    app.use(`${prefix}/chat`, chatRoutes);
   };
 
   mountRoutes('/api');

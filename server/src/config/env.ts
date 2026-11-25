@@ -9,4 +9,5 @@ export const ENV = {
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || 'ctu_super_secure_refresh_secret_key_2026_dsw_competition_hub',
   NODE_ENV: process.env.NODE_ENV || 'development',
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
 };

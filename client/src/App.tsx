@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { Layout } from './components/Layout';
 import { PublicLayout } from './components/PublicLayout';
+import { HubChatbot } from './components/HubChatbot';
 
 // Pages
 import { DiscoveryPage } from './pages/DiscoveryPage';
@@ -147,6 +148,7 @@ export function App() {
             {/* Catch-all */}
             <Route path="*" element={<Navigate to="/discover" replace />} />
           </Routes>
+          <HubChatbot />
         </NotificationProvider>
       </AuthProvider>
     </BrowserRouter>

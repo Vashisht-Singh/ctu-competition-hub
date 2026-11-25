@@ -13,10 +13,10 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// server/src/types/enums.ts
+// src/types/enums.ts
 var UserRole, ApprovalLevel, CompetitionScope, CompetitionCategory, CompetitionStatus, RegistrationStatus, FacultyDutyStatus, FacultyDutyCategory, ResultCategory, CertificateType;
 var init_enums = __esm({
-  "server/src/types/enums.ts"() {
+  "src/types/enums.ts"() {
     "use strict";
     UserRole = /* @__PURE__ */ ((UserRole2) => {
       UserRole2["SUPER_ADMIN"] = "SUPER_ADMIN";
@@ -145,7 +145,7 @@ var init_enums = __esm({
   }
 });
 
-// server/src/models/User.ts
+// src/models/User.ts
 var User_exports = {};
 __export(User_exports, {
   User: () => User
@@ -154,7 +154,7 @@ import mongoose2, { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 var UserSchema, User;
 var init_User = __esm({
-  "server/src/models/User.ts"() {
+  "src/models/User.ts"() {
     "use strict";
     init_enums();
     UserSchema = new Schema(
@@ -200,7 +200,7 @@ var init_User = __esm({
   }
 });
 
-// server/src/models/School.ts
+// src/models/School.ts
 var School_exports = {};
 __export(School_exports, {
   School: () => School
@@ -208,7 +208,7 @@ __export(School_exports, {
 import mongoose3, { Schema as Schema2 } from "mongoose";
 var SchoolSchema, School;
 var init_School = __esm({
-  "server/src/models/School.ts"() {
+  "src/models/School.ts"() {
     "use strict";
     SchoolSchema = new Schema2(
       {
@@ -238,7 +238,7 @@ var init_School = __esm({
   }
 });
 
-// server/src/models/Department.ts
+// src/models/Department.ts
 var Department_exports = {};
 __export(Department_exports, {
   Department: () => Department
@@ -246,7 +246,7 @@ __export(Department_exports, {
 import mongoose4, { Schema as Schema3 } from "mongoose";
 var DepartmentSchema, Department;
 var init_Department = __esm({
-  "server/src/models/Department.ts"() {
+  "src/models/Department.ts"() {
     "use strict";
     DepartmentSchema = new Schema3(
       {
@@ -265,12 +265,12 @@ var init_Department = __esm({
   }
 });
 
-// server/src/app.ts
+// src/app.ts
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 
-// server/src/config/env.ts
+// src/config/env.ts
 import dotenv from "dotenv";
 dotenv.config();
 var ENV = {
@@ -280,10 +280,11 @@ var ENV = {
   JWT_SECRET: process.env.JWT_SECRET || "ctu_super_secure_jwt_secret_key_2026_dsw_competition_hub",
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || "ctu_super_secure_refresh_secret_key_2026_dsw_competition_hub",
   NODE_ENV: process.env.NODE_ENV || "development",
-  CLIENT_URL: process.env.CLIENT_URL || "http://localhost:5173"
+  CLIENT_URL: process.env.CLIENT_URL || "http://localhost:5173",
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || ""
 };
 
-// server/src/middleware/errorHandler.ts
+// src/middleware/errorHandler.ts
 import { ZodError } from "zod";
 var errorHandler = (err, req, res, next) => {
   console.error("Unhandled Error:", err);
@@ -322,7 +323,7 @@ var errorHandler = (err, req, res, next) => {
   });
 };
 
-// server/src/config/db.ts
+// src/config/db.ts
 import mongoose from "mongoose";
 var mongodInstance = null;
 var connectDB = async () => {
@@ -377,15 +378,15 @@ var disconnectDB = async () => {
   }
 };
 
-// server/src/app.ts
+// src/app.ts
 init_User();
 
-// server/src/models/index.ts
+// src/models/index.ts
 init_User();
 init_School();
 init_Department();
 
-// server/src/models/Competition.ts
+// src/models/Competition.ts
 init_enums();
 import mongoose5, { Schema as Schema4 } from "mongoose";
 var CompetitionSchema = new Schema4(
@@ -542,7 +543,7 @@ var CompetitionSchema = new Schema4(
 );
 var Competition = mongoose5.model("Competition", CompetitionSchema);
 
-// server/src/models/CompetitionProposal.ts
+// src/models/CompetitionProposal.ts
 init_enums();
 import mongoose6, { Schema as Schema5 } from "mongoose";
 var CompetitionProposalSchema = new Schema5(
@@ -585,7 +586,7 @@ var CompetitionProposal = mongoose6.model(
   CompetitionProposalSchema
 );
 
-// server/src/models/ApprovalHistory.ts
+// src/models/ApprovalHistory.ts
 init_enums();
 import mongoose7, { Schema as Schema6 } from "mongoose";
 var ApprovalHistorySchema = new Schema6(
@@ -623,7 +624,7 @@ var ApprovalHistorySchema = new Schema6(
 );
 var ApprovalHistory = mongoose7.model("ApprovalHistory", ApprovalHistorySchema);
 
-// server/src/models/CompetitionProposalVersion.ts
+// src/models/CompetitionProposalVersion.ts
 import mongoose8, { Schema as Schema7 } from "mongoose";
 var CompetitionProposalVersionSchema = new Schema7(
   {
@@ -641,7 +642,7 @@ var CompetitionProposalVersion = mongoose8.model(
   CompetitionProposalVersionSchema
 );
 
-// server/src/models/Registration.ts
+// src/models/Registration.ts
 init_enums();
 import mongoose9, { Schema as Schema8 } from "mongoose";
 var RegistrationSchema = new Schema8(
@@ -733,7 +734,7 @@ var RegistrationSchema = new Schema8(
 RegistrationSchema.index({ competitionId: 1, userId: 1 }, { unique: true });
 var Registration = mongoose9.model("Registration", RegistrationSchema);
 
-// server/src/models/Team.ts
+// src/models/Team.ts
 import mongoose10, { Schema as Schema9 } from "mongoose";
 var TeamSchema = new Schema9(
   {
@@ -760,7 +761,7 @@ var TeamSchema = new Schema9(
 TeamSchema.index({ competitionId: 1, teamName: 1 }, { unique: true });
 var Team = mongoose10.model("Team", TeamSchema);
 
-// server/src/models/FacultyDuty.ts
+// src/models/FacultyDuty.ts
 init_enums();
 import mongoose11, { Schema as Schema10 } from "mongoose";
 var FacultyDutySchema = new Schema10(
@@ -813,7 +814,7 @@ var FacultyDutySchema = new Schema10(
 );
 var FacultyDuty = mongoose11.model("FacultyDuty", FacultyDutySchema);
 
-// server/src/models/CulturalCoordinatorAssignment.ts
+// src/models/CulturalCoordinatorAssignment.ts
 import mongoose12, { Schema as Schema11 } from "mongoose";
 var CulturalCoordinatorAssignmentSchema = new Schema11(
   {
@@ -833,7 +834,7 @@ var CulturalCoordinatorAssignment = mongoose12.model(
   CulturalCoordinatorAssignmentSchema
 );
 
-// server/src/models/JudgingRubric.ts
+// src/models/JudgingRubric.ts
 import mongoose13, { Schema as Schema12 } from "mongoose";
 var JudgingRubricSchema = new Schema12(
   {
@@ -853,7 +854,7 @@ var JudgingRubricSchema = new Schema12(
 );
 var JudgingRubric = mongoose13.model("JudgingRubric", JudgingRubricSchema);
 
-// server/src/models/Score.ts
+// src/models/Score.ts
 import mongoose14, { Schema as Schema13 } from "mongoose";
 var ScoreSchema = new Schema13(
   {
@@ -878,7 +879,7 @@ var ScoreSchema = new Schema13(
 ScoreSchema.index({ competitionId: 1, judgeId: 1, registrationId: 1, roundNumber: 1 }, { unique: true });
 var Score = mongoose14.model("Score", ScoreSchema);
 
-// server/src/models/CompetitionResult.ts
+// src/models/CompetitionResult.ts
 init_enums();
 import mongoose15, { Schema as Schema14 } from "mongoose";
 var CompetitionResultSchema = new Schema14(
@@ -916,7 +917,7 @@ var CompetitionResultSchema = new Schema14(
 CompetitionResultSchema.index({ competitionId: 1, registrationId: 1 }, { unique: true });
 var CompetitionResult = mongoose15.model("CompetitionResult", CompetitionResultSchema);
 
-// server/src/models/Certificate.ts
+// src/models/Certificate.ts
 init_enums();
 import mongoose16, { Schema as Schema15 } from "mongoose";
 var CertificateSchema = new Schema15(
@@ -966,7 +967,7 @@ var CertificateSchema = new Schema15(
 );
 var Certificate = mongoose16.model("Certificate", CertificateSchema);
 
-// server/src/models/Notification.ts
+// src/models/Notification.ts
 import mongoose17, { Schema as Schema16 } from "mongoose";
 var NotificationSchema = new Schema16(
   {
@@ -986,7 +987,7 @@ var NotificationSchema = new Schema16(
 );
 var Notification = mongoose17.model("Notification", NotificationSchema);
 
-// server/src/models/AuditLog.ts
+// src/models/AuditLog.ts
 import mongoose18, { Schema as Schema17 } from "mongoose";
 var AuditLogSchema = new Schema17(
   {
@@ -1006,7 +1007,7 @@ var AuditLogSchema = new Schema17(
 );
 var AuditLog = mongoose18.model("AuditLog", AuditLogSchema);
 
-// server/src/models/SystemSetting.ts
+// src/models/SystemSetting.ts
 import mongoose19, { Schema as Schema18 } from "mongoose";
 var SystemSettingSchema = new Schema18(
   {
@@ -1020,10 +1021,10 @@ var SystemSettingSchema = new Schema18(
 );
 var SystemSetting = mongoose19.model("SystemSetting", SystemSettingSchema);
 
-// server/src/scripts/seed.ts
+// src/scripts/seed.ts
 init_enums();
 
-// server/src/services/qrService.ts
+// src/services/qrService.ts
 import QRCode from "qrcode";
 var generateQRCodeDataUrl = async (text) => {
   try {
@@ -1042,7 +1043,7 @@ var generateQRCodeDataUrl = async (text) => {
   }
 };
 
-// server/src/scripts/seed.ts
+// src/scripts/seed.ts
 var runSeed = async () => {
   console.log("\u{1F331} Starting CTU Competition Hub database seeding...");
   await Promise.all([
@@ -1928,13 +1929,13 @@ if (process.argv[1]?.endsWith("seed.ts") || process.argv[1]?.endsWith("seed.js")
   })();
 }
 
-// server/src/services/hierarchyService.ts
+// src/services/hierarchyService.ts
 init_enums();
 init_User();
 init_School();
 init_Department();
 
-// server/src/middleware/rbac.ts
+// src/middleware/rbac.ts
 init_enums();
 var isDswRole = (roles = []) => roles.includes("SUPER_ADMIN" /* SUPER_ADMIN */) || roles.includes("DSW_ADMIN" /* DSW_ADMIN */);
 var isHosRole = (roles = []) => roles.includes("HOS" /* HOS */) || roles.includes("SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */);
@@ -1985,7 +1986,7 @@ var requireExactRoles = (...allowedRoles) => {
   };
 };
 
-// server/src/services/hierarchyService.ts
+// src/services/hierarchyService.ts
 function computeEffectiveStatus(comp) {
   if (!comp.isPublished) {
     return comp.status;
@@ -2270,13 +2271,13 @@ async function ensureOrgHierarchySynced() {
   }
 }
 
-// server/src/routes/authRoutes.ts
+// src/routes/authRoutes.ts
 init_User();
 init_School();
 import { Router } from "express";
 import jwt2 from "jsonwebtoken";
 
-// server/src/middleware/auth.ts
+// src/middleware/auth.ts
 import jwt from "jsonwebtoken";
 init_User();
 var authenticate = async (req, res, next) => {
@@ -2319,10 +2320,10 @@ var authenticateOptional = async (req, _res, next) => {
   next();
 };
 
-// server/src/routes/authRoutes.ts
+// src/routes/authRoutes.ts
 init_enums();
 
-// server/src/services/auditService.ts
+// src/services/auditService.ts
 import mongoose20 from "mongoose";
 var logAudit = async (options) => {
   try {
@@ -2344,7 +2345,7 @@ var logAudit = async (options) => {
   }
 };
 
-// server/src/routes/authRoutes.ts
+// src/routes/authRoutes.ts
 var router = Router();
 var generateTokens = (user) => {
   const token = jwt2.sign(
@@ -2525,7 +2526,7 @@ router.post("/switch-demo-role", async (req, res) => {
 });
 var authRoutes_default = router;
 
-// server/src/routes/schoolRoutes.ts
+// src/routes/schoolRoutes.ts
 init_School();
 init_User();
 import { Router as Router2 } from "express";
@@ -2677,7 +2678,7 @@ router2.put(
 );
 var schoolRoutes_default = router2;
 
-// server/src/routes/departmentRoutes.ts
+// src/routes/departmentRoutes.ts
 init_Department();
 import { Router as Router3 } from "express";
 var router3 = Router3();
@@ -2695,13 +2696,13 @@ router3.get("/", async (req, res) => {
 });
 var departmentRoutes_default = router3;
 
-// server/src/routes/coordinatorRoutes.ts
+// src/routes/coordinatorRoutes.ts
 init_School();
 init_User();
 import { Router as Router4 } from "express";
 init_enums();
 
-// server/src/services/notificationService.ts
+// src/services/notificationService.ts
 import mongoose21 from "mongoose";
 var sendNotification = async (options) => {
   try {
@@ -2802,7 +2803,7 @@ var notifySchoolHos = async (schoolId, title, message, actionUrl, type = "INFO")
   }
 };
 
-// server/src/routes/coordinatorRoutes.ts
+// src/routes/coordinatorRoutes.ts
 var router4 = Router4();
 router4.get(
   "/",
@@ -2991,7 +2992,7 @@ router4.get(
 );
 var coordinatorRoutes_default = router4;
 
-// server/src/routes/competitionRoutes.ts
+// src/routes/competitionRoutes.ts
 import { Router as Router5 } from "express";
 init_Department();
 init_enums();
@@ -4184,11 +4185,11 @@ router5.post(
 );
 var competitionRoutes_default = router5;
 
-// server/src/routes/registrationRoutes.ts
+// src/routes/registrationRoutes.ts
 import { Router as Router6 } from "express";
 init_enums();
 
-// server/src/services/exportService.ts
+// src/services/exportService.ts
 import * as XLSX from "xlsx";
 var generateExcelBuffer = (sheetName, data) => {
   const worksheet = XLSX.utils.json_to_sheet(data);
@@ -4202,7 +4203,7 @@ var generateCsvBuffer = (data) => {
   return Buffer.from(csvString, "utf-8");
 };
 
-// server/src/routes/registrationRoutes.ts
+// src/routes/registrationRoutes.ts
 var router6 = Router6();
 function canMonitorCompetition(req, competition) {
   const roles = req.userRoles || [];
@@ -4718,7 +4719,7 @@ router6.get(
 );
 var registrationRoutes_default = router6;
 
-// server/src/routes/facultyDutyRoutes.ts
+// src/routes/facultyDutyRoutes.ts
 import { Router as Router7 } from "express";
 init_enums();
 var router7 = Router7();
@@ -5018,7 +5019,7 @@ router7.get("/analytics/overview", authenticate, async (req, res) => {
 });
 var facultyDutyRoutes_default = router7;
 
-// server/src/routes/judgingRoutes.ts
+// src/routes/judgingRoutes.ts
 import { Router as Router8 } from "express";
 init_enums();
 var router8 = Router8();
@@ -5152,7 +5153,7 @@ router8.post(
 );
 var judgingRoutes_default = router8;
 
-// server/src/routes/resultRoutes.ts
+// src/routes/resultRoutes.ts
 import { Router as Router9 } from "express";
 init_enums();
 var router9 = Router9();
@@ -5342,7 +5343,7 @@ router9.post(
 );
 var resultRoutes_default = router9;
 
-// server/src/routes/certificateRoutes.ts
+// src/routes/certificateRoutes.ts
 import { Router as Router10 } from "express";
 init_enums();
 var router10 = Router10();
@@ -5507,7 +5508,7 @@ router10.post(
 );
 var certificateRoutes_default = router10;
 
-// server/src/routes/notificationRoutes.ts
+// src/routes/notificationRoutes.ts
 import { Router as Router11 } from "express";
 var router11 = Router11();
 router11.get("/", authenticate, async (req, res) => {
@@ -5541,7 +5542,7 @@ router11.post("/read-all", authenticate, async (req, res) => {
 });
 var notificationRoutes_default = router11;
 
-// server/src/routes/reportRoutes.ts
+// src/routes/reportRoutes.ts
 import { Router as Router12 } from "express";
 init_School();
 init_enums();
@@ -5710,7 +5711,7 @@ router12.get(
 );
 var reportRoutes_default = router12;
 
-// server/src/routes/auditRoutes.ts
+// src/routes/auditRoutes.ts
 import { Router as Router13 } from "express";
 init_enums();
 var router13 = Router13();
@@ -5751,7 +5752,7 @@ router13.get(
 );
 var auditRoutes_default = router13;
 
-// server/src/routes/monitoringRoutes.ts
+// src/routes/monitoringRoutes.ts
 import { Router as Router14 } from "express";
 init_enums();
 var router14 = Router14();
@@ -5912,7 +5913,758 @@ router14.get("/overview", authenticate, async (req, res) => {
 });
 var monitoringRoutes_default = router14;
 
-// server/src/app.ts
+// src/routes/chatRoutes.ts
+import { Router as Router15 } from "express";
+
+// src/services/chatbotService.ts
+init_enums();
+function getPrimaryRoleLabel(user) {
+  if (!user || !user.roles?.length) return "Visitor / Guest";
+  if (user.roles.includes("SUPER_ADMIN" /* SUPER_ADMIN */)) return "Super Admin";
+  if (user.roles.includes("DSW_ADMIN" /* DSW_ADMIN */)) return "Director Student Welfare (DSW)";
+  if (user.roles.includes("HOS" /* HOS */) || user.roles.includes("SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */)) return "Head of School (HOS)";
+  if (user.roles.includes("HOD" /* HOD */)) return "Head of Department (HOD)";
+  if (user.roles.includes("CULTURAL_COORDINATOR" /* CULTURAL_COORDINATOR */)) return "Cultural Coordinator";
+  if (user.roles.includes("FACULTY" /* FACULTY */)) return "Faculty Coordinator";
+  if (user.roles.includes("JUDGE" /* JUDGE */)) return "Judge";
+  return "Student";
+}
+function getRoleActions(user) {
+  if (!user) {
+    return [
+      { label: "Explore Competitions", path: "/discover" },
+      { label: "Sign In", path: "/login" }
+    ];
+  }
+  if (user.roles.includes("DSW_ADMIN" /* DSW_ADMIN */) || user.roles.includes("SUPER_ADMIN" /* SUPER_ADMIN */)) {
+    return [
+      { label: "DSW Dashboard", path: "/dsw/dashboard" },
+      { label: "Approval Queue", path: "/dsw/approval-queue" }
+    ];
+  }
+  if (user.roles.includes("HOS" /* HOS */) || user.roles.includes("SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */)) {
+    return [
+      { label: "HOS Dashboard", path: "/hos/dashboard" },
+      { label: "New Proposal", path: "/competitions/create" }
+    ];
+  }
+  if (user.roles.includes("HOD" /* HOD */)) {
+    return [
+      { label: "HOD Dashboard", path: "/hod/dashboard" },
+      { label: "New Proposal", path: "/competitions/create" }
+    ];
+  }
+  if (user.roles.includes("FACULTY" /* FACULTY */) || user.roles.includes("CULTURAL_COORDINATOR" /* CULTURAL_COORDINATOR */)) {
+    return [
+      { label: "Faculty Dashboard", path: "/faculty/dashboard" },
+      { label: "Create Proposal", path: "/competitions/create" }
+    ];
+  }
+  if (user.roles.includes("JUDGE" /* JUDGE */)) {
+    return [{ label: "Judging Portal", path: "/judging/dashboard" }];
+  }
+  return [
+    { label: "Student Dashboard", path: "/student/dashboard" },
+    { label: "My Registrations", path: "/student/registrations" }
+  ];
+}
+function getRoleSuggestions(user) {
+  if (!user) {
+    return [
+      "What is CTU Competition Hub?",
+      "How does the approval hierarchy work?",
+      "Suppose registrations are closed, how can we extend them?",
+      "How do students register for competitions?"
+    ];
+  }
+  if (user.roles.includes("DSW_ADMIN" /* DSW_ADMIN */) || user.roles.includes("SUPER_ADMIN" /* SUPER_ADMIN */)) {
+    return [
+      "How do we extend registration deadline or capacity?",
+      "What is my pending DSW queue right now?",
+      "How does registration monitoring work?",
+      "Explain all competition statuses"
+    ];
+  }
+  if (user.roles.includes("HOS" /* HOS */) || user.roles.includes("SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */)) {
+    return [
+      "How do I review HOS proposals?",
+      "Can we extend registration after it closes?",
+      "How do I monitor school registrations?",
+      "What happens if changes are requested?"
+    ];
+  }
+  if (user.roles.includes("HOD" /* HOD */)) {
+    return [
+      "How do I review department faculty proposals?",
+      "What happens when I create a proposal as HOD?",
+      "Can we extend registration after it closes?",
+      "How do I monitor department registrations?"
+    ];
+  }
+  if (user.roles.includes("FACULTY" /* FACULTY */) || user.roles.includes("CULTURAL_COORDINATOR" /* CULTURAL_COORDINATOR */)) {
+    return [
+      "How do I submit a competition proposal?",
+      "Suppose registrations are closed, how do we extend them?",
+      'How do I fix a "Changes Requested" proposal?',
+      "How do I track registrations for my event?"
+    ];
+  }
+  if (user.roles.includes("JUDGE" /* JUDGE */)) {
+    return [
+      "How do I score participants as a Judge?",
+      "How are results published?",
+      "What if there is a tie or score correction?"
+    ];
+  }
+  return [
+    "How do I register for a competition?",
+    "How many competitions are open right now?",
+    "Can I cancel or modify my registration?",
+    "Where do I find my QR certificate?"
+  ];
+}
+async function gatherLiveContext(user) {
+  const ctx = {
+    openCompetitionsCount: 0,
+    upcomingCompetitionsCount: 0,
+    closedCompetitionsCount: 0,
+    pendingForRoleCount: 0,
+    myProposalsCount: 0,
+    myRegistrationsCount: 0,
+    publishedList: []
+  };
+  try {
+    const [openCount, upcomingCount, closedCount, publishedDocs] = await Promise.all([
+      Competition.countDocuments({
+        isPublished: true,
+        status: "REGISTRATION_OPEN" /* REGISTRATION_OPEN */
+      }),
+      Competition.countDocuments({
+        isPublished: true,
+        status: { $in: ["PUBLISHED" /* PUBLISHED */, "APPROVED_BY_DSW" /* APPROVED_BY_DSW */] }
+      }),
+      Competition.countDocuments({
+        isPublished: true,
+        status: "REGISTRATION_CLOSED" /* REGISTRATION_CLOSED */
+      }),
+      Competition.find({ isPublished: true }).select("title status category participationType maxRegistrations currentRegistrationsCount registrationCloseDate proposedDate").sort({ createdAt: -1 }).limit(12).lean()
+    ]);
+    ctx.openCompetitionsCount = openCount;
+    ctx.upcomingCompetitionsCount = upcomingCount;
+    ctx.closedCompetitionsCount = closedCount;
+    ctx.publishedList = publishedDocs.map((d) => ({
+      id: d._id.toString(),
+      title: d.title,
+      status: d.status,
+      category: d.category,
+      participationType: d.participationType,
+      maxRegistrations: d.maxRegistrations || 0,
+      currentRegistrationsCount: d.currentRegistrationsCount || 0,
+      registrationCloseDate: d.registrationCloseDate,
+      proposedDate: d.proposedDate
+    }));
+    if (user) {
+      const userId = user._id;
+      if (user.roles.includes("DSW_ADMIN" /* DSW_ADMIN */) || user.roles.includes("SUPER_ADMIN" /* SUPER_ADMIN */)) {
+        ctx.pendingForRoleCount = await Competition.countDocuments({
+          status: "PENDING_DSW_APPROVAL" /* PENDING_DSW_APPROVAL */
+        });
+      } else if (user.roles.includes("HOS" /* HOS */) || user.roles.includes("SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */)) {
+        const filter = {
+          status: "PENDING_HOS_APPROVAL" /* PENDING_HOS_APPROVAL */
+        };
+        if (user.school) filter.schoolId = user.school;
+        ctx.pendingForRoleCount = await Competition.countDocuments(filter);
+      } else if (user.roles.includes("HOD" /* HOD */)) {
+        const filter = {
+          status: { $in: ["PENDING_HOD_APPROVAL" /* PENDING_HOD_APPROVAL */, "SUBMITTED_TO_HOD" /* SUBMITTED_TO_HOD */] }
+        };
+        if (user.departmentId) filter.departmentId = user.departmentId;
+        ctx.pendingForRoleCount = await Competition.countDocuments(filter);
+      }
+      if (user.roles.includes("FACULTY" /* FACULTY */) || user.roles.includes("HOD" /* HOD */) || user.roles.includes("HOS" /* HOS */) || user.roles.includes("CULTURAL_COORDINATOR" /* CULTURAL_COORDINATOR */)) {
+        ctx.myProposalsCount = await Competition.countDocuments({ createdBy: userId });
+      }
+      if (user.roles.includes("STUDENT" /* STUDENT */)) {
+        ctx.myRegistrationsCount = await Registration.countDocuments({ studentId: userId });
+      }
+    }
+  } catch {
+  }
+  return ctx;
+}
+function editDistance(a, b) {
+  if (Math.abs(a.length - b.length) > 3) return 99;
+  const dp = Array.from(
+    { length: a.length + 1 },
+    (_, i) => Array.from({ length: b.length + 1 }, (_2, j) => i === 0 ? j : j === 0 ? i : 0)
+  );
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[a.length][b.length];
+}
+function tokenize(text) {
+  return text.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter((w) => w.length >= 2);
+}
+function fuzzyMatchScore(tokens, keywords) {
+  let score = 0;
+  for (const kw of keywords) {
+    const kwLower = kw.toLowerCase();
+    if (kwLower.includes(" ")) {
+      if (tokens.join(" ").includes(kwLower)) score += 4;
+      continue;
+    }
+    for (const tok of tokens) {
+      if (tok === kwLower) {
+        score += 3;
+        break;
+      }
+      if (tok.startsWith(kwLower) || kwLower.startsWith(tok)) {
+        if (Math.min(tok.length, kwLower.length) >= 4) {
+          score += 2.2;
+          break;
+        }
+      }
+      if (kwLower.length >= 5 && editDistance(tok, kwLower) <= 2) {
+        score += 1.8;
+        break;
+      }
+    }
+  }
+  return score;
+}
+async function tryGeminiAnswer(userMessage, history, user, ctx, roleLabel) {
+  if (!ENV.GEMINI_API_KEY) return null;
+  const liveCompetitionsSummary = ctx.publishedList.slice(0, 8).map(
+    (c) => `- "${c.title}" (${c.category}, ${c.participationType}) | Status: ${c.status} | Seats: ${c.currentRegistrationsCount}/${c.maxRegistrations}`
+  ).join("\n");
+  const systemInstruction = `You are the official **CTU Competition Hub Guide** for CT University, Ludhiana (Directorate of Student Welfare - DSW).
+Answer the user's question clearly, concisely, and accurately based on the real system architecture below.
+
+USER CONTEXT:
+- Role: ${roleLabel}${user?.name ? ` (${user.name})` : ""}
+- Open Competitions: ${ctx.openCompetitionsCount}, Upcoming: ${ctx.upcomingCompetitionsCount}, Closed: ${ctx.closedCompetitionsCount}
+- Pending Queue for Role: ${ctx.pendingForRoleCount}
+${liveCompetitionsSummary ? `
+LIVE PUBLISHED COMPETITIONS:
+${liveCompetitionsSummary}` : ""}
+
+SYSTEM ARCHITECTURE & EXACT WORKFLOW RULES:
+1. Organizational Hierarchy: Faculty / Coordinator -> Head of Department (HOD) -> Head of School (HOS) -> Director Student Welfare (DSW).
+   - Scenario A (Faculty initiates): HOD -> HOS -> DSW.
+   - Scenario B (HOD initiates): HOS -> DSW (HOD cannot self-approve).
+   - Scenario C (HOS initiates): DSW.
+   - Scenario D (DSW initiates): Direct approval & publication with audit log.
+2. Changes Requested & Resubmission: Reviewers (HOD/HOS/DSW) can request changes with comments. Creator edits and resubmits; resubmission resumes at the exact level that requested changes (unless material scope change).
+3. Publication & Schedule: Students NEVER see unapproved/draft competitions. Only DSW can publish (POST /api/competitions/:id/publish). If registrationOpenDate is future, it publishes as PUBLISHED (Upcoming); once open, status is REGISTRATION_OPEN.
+4. Extending / Reopening Closed Registrations (IMPORTANT):
+   - Once a competition is approved/published/closed, non-DSW organizers CANNOT edit it directly (PUT /api/competitions/:id locks non-DSW edits to DRAFT / CHANGES_REQUESTED).
+   - Only **DSW (DSW_ADMIN / SUPER_ADMIN)** can extend registrationCloseDate (if deadline passed) or increase maxRegistrations / maxTeams (if capacity is full) and reopen registration.
+   - Alternatively, Faculty/HOD/HOS can submit a follow-up Round 2 / Wildcard proposal through the approval hierarchy.
+5. Student Registration: Atomic seat reservation (currentRegistrationsCount < maxRegistrations). Prevents duplicates, before-open, after-close, or over-capacity registrations. Supports Individual and Team (Team Leader + Team Members + size validation). Students can view registrations (/student/registrations) and cancel if allowed before event start.
+6. Monitoring: Role-scoped (/api/monitoring/overview) \u2014 Faculty sees own events, HOD sees department, HOS sees school, DSW sees all university.
+7. Judging & Certificates: Judges score via /judging/dashboard, DSW/Coordinators publish results via /results/publishing, students download QR-verified PDF certificates (/student/certificates), public verification at /verify-certificate/:certNumber.
+8. Excel / Bulk Updates: Exports (.xlsx/.csv) are built-in at /reports and per-competition registration lists. Bulk faculty Excel import can be added via DSW admin upload or CLI script.
+
+FORMATTING RULES:
+- Use clean markdown (**bold**, bullet lists, numbered steps).
+- Be direct, practical, and tailored to the user's role.`;
+  try {
+    const contents = [
+      ...history.slice(-6).map((h) => ({
+        role: h.sender === "user" ? "user" : "model",
+        parts: [{ text: h.text }]
+      })),
+      { role: "user", parts: [{ text: userMessage }] }
+    ];
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${ENV.GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemInstruction }] },
+          contents,
+          generationConfig: {
+            temperature: 0.35,
+            maxOutputTokens: 700
+          }
+        })
+      }
+    );
+    if (!response.ok) return null;
+    const json = await response.json();
+    const replyText = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!replyText) return null;
+    return {
+      reply: replyText.trim(),
+      actions: getRoleActions(user),
+      suggestions: getRoleSuggestions(user),
+      roleLabel,
+      mode: "ai"
+    };
+  } catch {
+    return null;
+  }
+}
+async function getChatWelcome(user) {
+  const roleLabel = getPrimaryRoleLabel(user);
+  const ctx = await gatherLiveContext(user);
+  const name = user?.name ? `**${user.name}**` : "there";
+  let roleIntro = "";
+  if (!user) {
+    roleIntro = `There are currently **${ctx.openCompetitionsCount}** competition(s) open for registration. Ask me anything\u2014even dynamic "what-if" questions about workflows, extending registrations, hierarchy rules, or how to use any feature!`;
+  } else if (user.roles.includes("DSW_ADMIN" /* DSW_ADMIN */) || user.roles.includes("SUPER_ADMIN" /* SUPER_ADMIN */)) {
+    roleIntro = `You are logged in as **${roleLabel}**. You currently have **${ctx.pendingForRoleCount}** proposal(s) waiting for final DSW approval, and **${ctx.openCompetitionsCount}** competition(s) open across the university.`;
+  } else if (user.roles.includes("HOS" /* HOS */) || user.roles.includes("SCHOOL_COORDINATOR" /* SCHOOL_COORDINATOR */)) {
+    roleIntro = `You are logged in as **${roleLabel}**. You currently have **${ctx.pendingForRoleCount}** school proposal(s) pending your HOS review.`;
+  } else if (user.roles.includes("HOD" /* HOD */)) {
+    roleIntro = `You are logged in as **${roleLabel}**. You currently have **${ctx.pendingForRoleCount}** department proposal(s) pending your HOD review.`;
+  } else if (user.roles.includes("FACULTY" /* FACULTY */) || user.roles.includes("CULTURAL_COORDINATOR" /* CULTURAL_COORDINATOR */)) {
+    roleIntro = `You are logged in as **${roleLabel}**. You have created **${ctx.myProposalsCount}** proposal(s) so far. Ask me how to submit a proposal, extend registrations, or monitor participants!`;
+  } else if (user.roles.includes("JUDGE" /* JUDGE */)) {
+    roleIntro = `You are logged in as **${roleLabel}**. I can guide you through scoring participants, tie-breakers, and publishing results.`;
+  } else {
+    roleIntro = `You are logged in as a **Student**. There are **${ctx.openCompetitionsCount}** competition(s) open for registration right now, and you have **${ctx.myRegistrationsCount}** active registration(s).`;
+  }
+  return {
+    reply: `Hi ${name}! Welcome to the **CTU Competition Hub Assistant**.
+
+${roleIntro}`,
+    actions: getRoleActions(user),
+    suggestions: getRoleSuggestions(user),
+    roleLabel,
+    mode: ENV.GEMINI_API_KEY ? "ai" : "smart-engine"
+  };
+}
+async function generateChatReply(rawMessage, user, history = []) {
+  const roleLabel = getPrimaryRoleLabel(user);
+  const ctx = await gatherLiveContext(user);
+  const defaultSuggestions = getRoleSuggestions(user);
+  const aiResult = await tryGeminiAnswer(rawMessage, history, user, ctx, roleLabel);
+  if (aiResult) return aiResult;
+  const msg = rawMessage.trim().toLowerCase();
+  const tokens = tokenize(rawMessage);
+  const lastUserTurn = [...history].reverse().find((h) => h.sender === "user")?.text || "";
+  const combinedTokens = tokens.length <= 6 && lastUserTurn ? [...tokens, ...tokenize(lastUserTurn)] : tokens;
+  const matchedCompetition = ctx.publishedList.find((c) => {
+    const titleWords = tokenize(c.title).filter((w) => w.length >= 4);
+    const hits = titleWords.filter((tw) => tokens.some((ut) => ut === tw || editDistance(ut, tw) <= 1));
+    return hits.length >= 2 || titleWords.length === 1 && hits.length === 1;
+  });
+  if (matchedCompetition && (msg.includes("about") || msg.includes("when") || msg.includes("seat") || msg.includes("status") || msg.includes("open") || msg.includes("date") || msg.includes("detail"))) {
+    const remaining = Math.max(
+      0,
+      matchedCompetition.maxRegistrations - matchedCompetition.currentRegistrationsCount
+    );
+    const closeDateStr = matchedCompetition.registrationCloseDate ? new Date(matchedCompetition.registrationCloseDate).toLocaleDateString() : "TBA";
+    return {
+      reply: `**${matchedCompetition.title}**
+- **Category:** ${matchedCompetition.category} (${matchedCompetition.participationType})
+- **Current Status:** \`${matchedCompetition.status}\`
+- **Registrations:** ${matchedCompetition.currentRegistrationsCount} / ${matchedCompetition.maxRegistrations} (${remaining} seats remaining)
+- **Registration Deadline:** ${closeDateStr}`,
+      actions: [
+        { label: `Open ${matchedCompetition.title}`, path: `/competitions/${matchedCompetition.id}` }
+      ],
+      suggestions: defaultSuggestions,
+      roleLabel,
+      mode: "smart-engine"
+    };
+  }
+  if (/^(hi|hello|hey|namaste|help|start|menu)\b/.test(msg) && msg.length < 25) {
+    return getChatWelcome(user);
+  }
+  const intents = [
+    {
+      id: "extend_registration",
+      keywords: [
+        "extend",
+        "extension",
+        "reopen",
+        "re-open",
+        "increase",
+        "deadline",
+        "date",
+        "capacity",
+        "limit",
+        "seats",
+        "full",
+        "done",
+        "closed",
+        "after closing",
+        "more students",
+        "pathway",
+        "pathways",
+        "postpone",
+        "reschedule",
+        "prolong"
+      ],
+      minScore: 4.5
+    },
+    {
+      id: "cancel_registration",
+      keywords: ["cancel", "withdraw", "unregister", "drop", "remove registration", "leave competition"],
+      minScore: 3
+    },
+    {
+      id: "edit_after_approval",
+      keywords: ["edit", "update", "modify", "change details", "after submit", "after approval", "published"],
+      minScore: 4.5
+    },
+    {
+      id: "excel_import",
+      keywords: ["excel", "xlsx", "csv", "bulk", "import", "upload faculty", "spreadsheet", "sheet"],
+      minScore: 3
+    },
+    {
+      id: "overview",
+      keywords: ["what is", "about this project", "overview", "purpose", "explain project", "ctu competition hub"],
+      minScore: 3
+    },
+    {
+      id: "hierarchy",
+      keywords: ["hierarchy", "approval flow", "workflow", "who approves", "bypass", "chain", "hod", "hos", "dsw"],
+      minScore: 4
+    },
+    {
+      id: "changes_requested",
+      keywords: ["changes requested", "modification", "reject", "resubmit", "returned", "revision"],
+      minScore: 3
+    },
+    {
+      id: "live_queue",
+      keywords: ["pending", "my queue", "how many", "open right now", "live count", "stats"],
+      minScore: 3
+    },
+    {
+      id: "create_proposal",
+      keywords: ["create", "submit", "proposal", "new competition", "organize", "host event"],
+      minScore: 3
+    },
+    {
+      id: "review_approve",
+      keywords: ["review", "approve", "publish", "final approval", "sign off"],
+      minScore: 3
+    },
+    {
+      id: "team_registration",
+      keywords: ["team", "group", "leader", "members", "team size"],
+      minScore: 3
+    },
+    {
+      id: "student_registration",
+      keywords: ["register", "registration", "join", "participate", "apply", "enroll", "eligibility", "eligible"],
+      minScore: 3
+    },
+    {
+      id: "certificates",
+      keywords: ["certificate", "qr", "verify", "download certificate"],
+      minScore: 3
+    },
+    {
+      id: "monitoring",
+      keywords: ["monitor", "monitoring", "progress bar", "remaining seats", "fill rate", "dashboard"],
+      minScore: 3
+    },
+    {
+      id: "judging_results",
+      keywords: ["judge", "judging", "score", "rubric", "result", "winner", "tie", "correction"],
+      minScore: 3
+    },
+    {
+      id: "statuses",
+      keywords: ["status", "statuses", "state", "draft", "lifecycle"],
+      minScore: 3
+    },
+    {
+      id: "reports_audit",
+      keywords: ["report", "export", "audit", "logs", "history"],
+      minScore: 3
+    }
+  ];
+  const scored = intents.map((intent) => ({
+    id: intent.id,
+    score: fuzzyMatchScore(combinedTokens, intent.keywords),
+    minScore: intent.minScore ?? 3
+  })).sort((a, b) => b.score - a.score);
+  const hasExtendIntent = fuzzyMatchScore(tokens, ["extend", "reopen", "increase", "postpone", "done", "closed", "pathway", "full"]) >= 2.2 && fuzzyMatchScore(tokens, ["registration", "registrations", "deadline", "capacity", "seats"]) >= 2.2;
+  const topIntent = hasExtendIntent ? "extend_registration" : scored[0] && scored[0].score >= scored[0].minScore ? scored[0].id : "fallback";
+  switch (topIntent) {
+    case "extend_registration":
+      return {
+        reply: `**Pathways to Extend Registrations After Closing / Completion:**
+
+Because registration rules are enforced strictly on the backend, **only DSW (\`DSW_ADMIN\` / \`SUPER_ADMIN\`)** can modify a competition once it is approved/published:
+
+1. **Pathway 1 \u2014 Extend the Registration Deadline:**
+   - If the closing date passed (\`REGISTRATION_CLOSED\`), **DSW** updates \`registrationCloseDate\` to a new future date (via \`PUT /api/competitions/:id\` or DSW management) and sets the status back to \`REGISTRATION_OPEN\`.
+2. **Pathway 2 \u2014 Increase Participant / Team Capacity:**
+   - If registrations stopped because **maximum seats filled up**, increasing \`registrationCloseDate\` alone is not enough\u2014**DSW** must also increase \`maxRegistrations\` (or \`maxTeams\`) above the current count and reopen registration.
+3. **Pathway 3 \u2014 Faculty / HOD / HOS Request:**
+   - Faculty, HOD, and HOS cannot directly edit a published competition. They must contact **DSW** to extend the window, **or** submit a fresh **Round 2 / Wildcard Entry** proposal through \`Faculty \u2192 HOD \u2192 HOS \u2192 DSW\`.`,
+        actions: user && (user.roles.includes("DSW_ADMIN" /* DSW_ADMIN */) || user.roles.includes("SUPER_ADMIN" /* SUPER_ADMIN */)) ? [{ label: "DSW Dashboard", path: "/dsw/dashboard" }] : getRoleActions(user),
+        suggestions: [
+          "Who can edit a competition after approval?",
+          "How does registration monitoring work?",
+          "Explain all competition statuses"
+        ],
+        roleLabel,
+        mode: "smart-engine"
+      };
+    case "cancel_registration":
+      return {
+        reply: `**Cancelling / Modifying a Student Registration:**
+
+- Open **My Registrations** (\`/student/registrations\`) to view your active entries and unique Registration IDs.
+- If a student cancels a valid registration before the event locks, the competition's \`currentRegistrationsCount\` automatically decrements and frees up a seat for other students.
+- Unauthorized modifications by other users are blocked on the backend.`,
+        actions: [{ label: "My Registrations", path: "/student/registrations" }],
+        suggestions: defaultSuggestions,
+        roleLabel,
+        mode: "smart-engine"
+      };
+    case "edit_after_approval":
+      return {
+        reply: `**Who Can Edit a Competition & When:**
+
+- **Creator (Faculty / HOD / HOS):** Can edit freely while status is \`DRAFT\`, \`CHANGES_REQUESTED\`, or \`REVISION_REQUIRED\`.
+- **While Pending Approval:** Locked for creator edits so reviewers see an immutable proposal.
+- **After Approval / Publication:** Only **DSW** can edit fields (such as dates, venue, capacity, or registration window) to preserve university governance and audit integrity.`,
+        actions: getRoleActions(user),
+        suggestions: [
+          "Suppose registrations are closed, how can we extend them?",
+          "What happens if changes are requested?"
+        ],
+        roleLabel,
+        mode: "smart-engine"
+      };
+    case "excel_import":
+      return {
+        reply: `**Excel (\`.xlsx\` / \`.csv\`) Support in CTU Competition Hub:**
+
+- **Built-in Exports:** You can currently export **Registrations** per competition and **University Reports** as \`.xlsx\` or \`.csv\` from **Reports & Exports** (\`/reports\`).
+- **Bulk Faculty / User Import via Excel:** The server already includes \`xlsx\` and \`multer\`. An admin upload panel or import script can parse an Excel sheet (\`Name, Email, Role, School, Department, Phone\`) to create/update faculty accounts and map them automatically into the \`Faculty \u2192 HOD \u2192 HOS \u2192 DSW\` hierarchy.`,
+        actions: [{ label: "Reports & Exports", path: "/reports" }],
+        suggestions: defaultSuggestions,
+        roleLabel,
+        mode: "smart-engine"
+      };
+    case "overview":
+      return {
+        reply: `**CTU Competition Hub** is CT University's official, centralized competition management platform built for the **Directorate of Student Welfare (DSW)**.
+
+- **Hierarchical Proposal Approvals:** \`Faculty \u2192 HOD \u2192 HOS \u2192 DSW\` workflow.
+- **Schedule-Aware Publication:** Automatic \`PUBLISHED\` (upcoming) vs \`REGISTRATION_OPEN\` / \`REGISTRATION_CLOSED\` transitions.
+- **Atomic Student Registration:** Individual & Team registration with database-level anti-overbooking locks.
+- **Live Monitoring, Judging & QR Certificates:** Role-scoped analytics, rubric scoring, and verifiable PDF certificates.`,
+        actions: getRoleActions(user),
+        suggestions: defaultSuggestions,
+        roleLabel,
+        mode: "smart-engine"
+      };
+    case "hierarchy":
+      return {
+        reply: `**CT University Organizational Approval Hierarchy:**
+\`Faculty / Coordinator \u2192 Head of Department (HOD) \u2192 Head of School (HOS) \u2192 Director Student Welfare (DSW)\`
+
+1. **Faculty initiates:** Goes to **HOD** \u2192 **HOS** \u2192 **DSW**.
+2. **HOD initiates:** Goes directly to **HOS** \u2192 **DSW** *(HOD cannot self-approve)*.
+3. **HOS initiates:** Goes directly to **DSW**.
+4. **DSW initiates:** Approves and publishes directly with full audit logging.
+
+**Business Rule:** No competition becomes visible to students until **DSW** grants final approval and publishes it.`,
+        actions: getRoleActions(user),
+        suggestions: [
+          "What happens if changes are requested?",
+          "Suppose registrations are closed, how can we extend them?"
+        ],
+        roleLabel,
+        mode: "smart-engine"
+      };
+    case "changes_requested":
+      return {
+        reply: `**How "Changes Requested" & Smart Resubmission Works:**
+
+- Any reviewer (**HOD**, **HOS**, or **DSW**) can request modifications with comments.
+- The proposal returns to the creator with status \`CHANGES_REQUESTED\`.
+- When the creator edits and clicks **Resubmit**, it **resumes at the exact level that requested the changes** (e.g., if HOS requested changes, it returns directly to HOS\u2014not back to HOD).`,
+        actions: getRoleActions(user),
+        suggestions: defaultSuggestions,
+        roleLabel,
+        mode: "smart-engine"
+      };
+    case "live_queue":
+      return {
+        reply: `**Live Platform Counts:**
+- **Open for Registration:** ${ctx.openCompetitionsCount} competition(s)
+- **Upcoming Published:** ${ctx.upcomingCompetitionsCount} competition(s)
+- **Registration Closed:** ${ctx.closedCompetitionsCount} competition(s)
+` + (user ? `- **Pending for Your Role (${roleLabel}):** ${ctx.pendingForRoleCount} item(s)
+` : "") + (user?.roles.includes("STUDENT" /* STUDENT */) ? `- **Your Registrations:** ${ctx.myRegistrationsCount}` : ""),
+        actions: getRoleActions(user),
+        suggestions: defaultSuggestions,
+        roleLabel,
+        mode: "smart-engine"
+      };
+    case "create_proposal":
+      return {
+        reply: `**How to Create & Submit a Competition Proposal:**
+
+1. Open **Create Proposal** (\`/competitions/create\`).
+2. Fill in title, category, individual/team format, proposed date/time, registration open/close dates, capacity, rules, and budget.
+3. Your **School & Department** are auto-mapped from your account.
+4. Save as **Draft** or click **Submit for Approval** to route it up the hierarchy.`,
+        actions: user && !user.roles.includes("STUDENT" /* STUDENT */) ? [{ label: "Create Proposal", path: "/competitions/create" }] : [{ label: "Sign In as Staff", path: "/login" }],
+        suggestions: defaultSuggestions,
+        roleLabel,
+        mode: "smart-engine"
+      };
+    case "review_approve":
+      return {
+        reply: `**How Approvals & Publication Work:**
+
+- **HOD** reviews department proposals in **HOD Dashboard** and forwards to HOS.
+- **HOS** reviews school proposals in **HOS Dashboard** and forwards to DSW.
+- **DSW** performs final approval in **Approval Queue** and clicks **Publish**, making it visible to students based on the registration open/close schedule.`,
+        actions: getRoleActions(user),
+        suggestions: defaultSuggestions,
+        roleLabel,
+        mode: "smart-engine"
+      };
+    case "team_registration":
+      return {
+        reply: `**Team Registration Pathway:**
+
+1. Open any team-based competition and click **Register**.
+2. Enter your **Team Name** and add **Team Members** within the allowed \`minTeamSize\`\u2013\`maxTeamSize\`.
+3. You are recorded as the **Team Leader**, a unique Registration ID is issued, and capacity is updated atomically.`,
+        actions: getRoleActions(user),
+        suggestions: defaultSuggestions,
+        roleLabel,
+        mode: "smart-engine"
+      };
+    case "student_registration":
+      return {
+        reply: `**Student Registration & Eligibility:**
+
+1. Browse all DSW-published events on **Student Dashboard** or **Discover** (you don't need to belong to the organizing school for university-wide events).
+2. Open the competition details page and click **Register Now**.
+3. The backend checks eligibility, opening/closing dates, duplicate entries, and remaining seats atomically before issuing your Registration ID.`,
+        actions: [
+          { label: "Browse Competitions", path: user?.roles.includes("STUDENT" /* STUDENT */) ? "/student/dashboard" : "/discover" }
+        ],
+        suggestions: defaultSuggestions,
+        roleLabel,
+        mode: "smart-engine"
+      };
+    case "certificates":
+      return {
+        reply: `**Certificates & QR Verification:**
+
+- Students download PDF certificates from **My Certificates** (\`/student/certificates\`) once results are published.
+- Every certificate carries a QR code and unique number verifiable at \`/verify-certificate/:certNumber\`.`,
+        actions: user?.roles.includes("STUDENT" /* STUDENT */) ? [{ label: "My Certificates", path: "/student/certificates" }] : [{ label: "Results Publishing", path: "/results/publishing" }],
+        suggestions: defaultSuggestions,
+        roleLabel,
+        mode: "smart-engine"
+      };
+    case "monitoring":
+      return {
+        reply: `**Role-Scoped Registration Monitoring:**
+
+- **Faculty:** Sees competitions they proposed/coordinate.
+- **HOD:** Sees all competitions in their **Department**.
+- **HOS:** Sees all competitions in their **School**.
+- **DSW:** Sees **all university** competitions.
+
+Each card displays live capacity, registrations received, remaining seats, and fill percentage.`,
+        actions: getRoleActions(user),
+        suggestions: defaultSuggestions,
+        roleLabel,
+        mode: "smart-engine"
+      };
+    case "judging_results":
+      return {
+        reply: `**Judging, Scoring & Results Publishing:**
+
+1. Judges score participants using competition rubrics in **Judging Portal** (\`/judging/dashboard\`).
+2. DSW / Coordinators generate & publish official results in **Results Publishing** (\`/results/publishing\`).
+3. Official score corrections (if needed) are logged with audit trails.`,
+        actions: [
+          { label: "Judging Portal", path: "/judging/dashboard" },
+          { label: "Results Publishing", path: "/results/publishing" }
+        ],
+        suggestions: defaultSuggestions,
+        roleLabel,
+        mode: "smart-engine"
+      };
+    case "statuses":
+      return {
+        reply: `**Competition Lifecycle Statuses:**
+\`DRAFT\` \u2192 \`PENDING_HOD_APPROVAL\` \u2192 \`PENDING_HOS_APPROVAL\` \u2192 \`PENDING_DSW_APPROVAL\` \u2192 \`APPROVED_BY_DSW\` \u2192 \`PUBLISHED\` (Upcoming) \u2192 \`REGISTRATION_OPEN\` \u2192 \`REGISTRATION_CLOSED\` \u2192 \`COMPLETED\`.
+
+Branch states: \`CHANGES_REQUESTED\`, \`REJECTED\`, \`CANCELLED\`.`,
+        actions: getRoleActions(user),
+        suggestions: defaultSuggestions,
+        roleLabel,
+        mode: "smart-engine"
+      };
+    case "reports_audit":
+      return {
+        reply: `**Reports & Audit Logs:**
+- **Reports & Exports (\`/reports\`):** Export Excel/CSV participation and registration data.
+- **Audit Logs (\`/audit-logs\`):** Immutable record of every approval decision, rejection reason, publication, and administrative action.`,
+        actions: [
+          { label: "Reports & Exports", path: "/reports" },
+          { label: "Audit Logs", path: "/audit-logs" }
+        ],
+        suggestions: defaultSuggestions,
+        roleLabel,
+        mode: "smart-engine"
+      };
+    default:
+      return {
+        reply: `I'm your **CTU Competition Hub Guide** (${roleLabel}). I can answer questions about **workflows, extending closed registrations, approval hierarchy, proposal edits, student/team registration, judging, certificates, and live event stats**.
+
+Could you rephrase or pick one of the topics below? *(Tip: Adding a \`GEMINI_API_KEY\` in \`server/.env\` also enables full conversational AI responses for any open-ended question.)*`,
+        actions: getRoleActions(user),
+        suggestions: defaultSuggestions,
+        roleLabel,
+        mode: "smart-engine"
+      };
+  }
+}
+
+// src/routes/chatRoutes.ts
+var router15 = Router15();
+router15.get("/welcome", authenticateOptional, async (req, res) => {
+  try {
+    const payload = await getChatWelcome(req.user);
+    res.json({ success: true, data: payload });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message || "Failed to load assistant." });
+  }
+});
+router15.post("/ask", authenticateOptional, async (req, res) => {
+  try {
+    const { message, history } = req.body;
+    if (!message || typeof message !== "string" || !message.trim()) {
+      res.status(400).json({ success: false, message: "Please enter a question." });
+      return;
+    }
+    const payload = await generateChatReply(message, req.user, Array.isArray(history) ? history : []);
+    res.json({ success: true, data: payload });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message || "Failed to generate reply." });
+  }
+});
+var chatRoutes_default = router15;
+
+// src/app.ts
 var isConnected = false;
 var ensureConnected = async () => {
   if (!isConnected) {
@@ -5976,6 +6728,7 @@ var createApp = () => {
     app2.use(`${prefix}/reports`, reportRoutes_default);
     app2.use(`${prefix}/audit-logs`, auditRoutes_default);
     app2.use(`${prefix}/monitoring`, monitoringRoutes_default);
+    app2.use(`${prefix}/chat`, chatRoutes_default);
   };
   mountRoutes("/api");
   mountRoutes("");
